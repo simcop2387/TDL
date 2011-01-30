@@ -1,4 +1,18 @@
-	body{ font-size: 75%;}
+body
+{
+	text-align: center;
+}
+
+div#container
+{
+	margin-left: auto;
+	margin-right: auto;
+	width: 50em;
+	text-align: left;
+}
+
+
+	body{ font-size: 75%; background-image: url('back.png'); background-attachment: fixed; background-repeat: repeat-x; background-color: #361C7F}
 	#sortable { list-style-type: none; margin: 0; padding: 0; width: 30%; }
 	#sortable li { margin: 3px 3px 3px 3px; padding: 0.3em; padding-left: 1.5em;}
 	#sortable li .arrows { float: left; margin-left: -1.3em; }
