@@ -5,13 +5,15 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.8/jquery-ui.min.js" type="text/javascript"></script>
 
-<style src="jq/css/custom-theme/jquery-ui-1.8.9.custom.css" />
+<link rel="stylesheet" href="jq/css/custom-theme/jquery-ui-1.8.9.custom.css" />
 
 <style>
-	#sortable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
-	#sortable li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 1.5em; height: 18px;}
-	#sortable li span { position: absolute; margin-left: -1.3em; }
-	
+	body{ font-size: 75%; margin: 50px;}
+	#sortable { list-style-type: none; margin: 0; padding: 0; width: 30%; }
+	#sortable li { margin: 3px 3px 3px 3px; padding: 0.3em; padding-left: 1.5em;}
+	#sortable li .arrows { float: left; margin-left: -1.3em; }
+	.pullright {float: right;}
+	.clear {clear: both;}
 
 .primary-1 { background-color: #30659D }
 .primary-2 { background-color: #375C82 }
@@ -48,7 +50,11 @@
      var myitem={title: title, id: id, due: due};
      items.push(myitem);
      
-	  $("#sortable").append('<li class="ui-state-default ui-corner-all" id="todo_'+id+'"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+'</li>');
+	  $("#sortable").append('<li class="ui-state-default ui-corner-all" id="todo_'+id+
+	          '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+
+	          '<span class="pullright ui-icon ui-icon-close"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
+     $(".ui-icon-wrench","#todo_"+id).hover();
+	          
 	  $("#sortable").sortable("refresh");
 	  
 	  sendlist();
@@ -90,8 +96,8 @@
 			}
 		});
 		$( "#sortable" ).disableSelection();
-		$( "a", ".demo" ).button();
-		$( "#additem", ".demo" ).click(function() { $("#adddialog").dialog('open'); return false; });
+		$( "#additem" ).button();
+		$( "#additem" ).click(function() { $("#adddialog").dialog('open'); return false; });
 		$( "#adddialog" ).dialog({ autoOpen: false });
 		$( "#datepicker", "#adddialog" ).datepicker();
 		
@@ -116,8 +122,6 @@
 </head>
 <body>
 
-<div class="demo">
-
 <div id="adddialog" title="Add an item">
 	Title: <input id="title" type="text" /><br />
 	Due date: <input id="datepicker" type="text" />
@@ -127,8 +131,8 @@
 
 <ul id="sortable">
 </ul>
+
 <a href="#" id="additem">Add an item</a>
-</div><!-- End demo -->
 
 </body>
 </html>
