@@ -13,11 +13,52 @@
 	#sortable li span { position: absolute; margin-left: -1.3em; }
 </style>
 <script>
+   var items=new Array();
+
+   function makeitem(title, due) {
+     var id=items.length;
+     var myitem={title: title, id: id, due: due};
+     items.push(myitem);
+     
+	  $("#sortable").append('<li class="ui-state-default" id="todo_'+id+'"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+'</li>');
+	  $("#sortable").sortable("refresh");
+	  
+	  sendlist();
+   };
+   
+   function makejson() {
+     var order = $( "#sortable" ).sortable("toArray");
+
+	  var json={order: order, items: items};  
+     
+     // I don't know what the json we actually want should look like so i'm just going to do everything
+     console.log(uneval(json));
+     return json;
+   }
+   
+   function sendlist() {
+     var json=makejson();
+     
+     console.log("sending list");
+   }
+   
+   function checktitle(title) {
+     if (title === "")
+       return false;   
+
+     /*check for duplicate todo, don't care right now*/   
+     for (var i in items) {
+       if (title == i.title)
+         return false;
+     }
+     
+     return true;
+   }
+      
 	$(function() {
 		$( "#sortable" ).sortable({
 			update: function(event, ui) {
-				var fruitOrder = $(this).sortable("toArray", {attribute: "item"});
-				alert(fruitOrder);
+				sendlist();
 			}
 		});
 		$( "#sortable" ).disableSelection();
@@ -30,13 +71,16 @@
 			var title=$("#title", "#adddialog").val();
 			var dueon=$("#datepicker", "#adddialog").val();
 
-			/*i should do some checking here to see if it's all sane, don't give a shit right now*/			 
-			$("#sortable").append('<li class="ui-state-default" item="'+title+'"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+'</li>');
-
-			/*clear the dialog*/			
-			$("#adddialog").dialog("close");
-			$("#datepicker", "#adddialog").val("");
-			$("#title", "#adddialog").val("");
+			/*i should do some checking here to see if it's all sane, don't give a shit right now*/
+			if (!checktitle(title)) {
+				$("#title", "#adddialog").animate({backgroundColor: "red"}, 1000);
+			} else {
+			   makeitem(title, dueon);
+				/*clear the dialog*/			
+				$("#adddialog").dialog("close");
+				$("#datepicker", "#adddialog").val("");
+				$("#title", "#adddialog").val("").animate({backgroundColor: "white"}, 10);
+			}
 		});
 	});
 </script>
