@@ -13,14 +13,18 @@
 </head>
 
 <body>
-  <div class="header">
-    <h1>Amazingly shitty webapp</h1>
+  <div class="container">
+    <div class="header">
+      <h1>Amazingly shitty webapp</h1>
+    </div>
+
+    <div class="todolist">
+      <ul id="sortable"></ul>
+      <a href="#" id="additem" name="additem">Add an item</a>
+    </div>
   </div>
 
-  <div class="todolist">
-    <ul id="sortable"></ul><a href="#" id="additem" name="additem">Add an item</a>
-  </div><!-- dialog boxes! -->
-
+  <!-- dialog boxes! -->
   <div id="adddialog" title="Add an item">
     Title: <input id="addtitle" type="text" /><br />
     Due date: <input id="adddatepicker" type="text" /> <a href="#" class="_savechanges">Save Changes</a> <a href="#" class="_cancel">Cancel</a>
