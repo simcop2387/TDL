@@ -1,0 +1,25 @@
+GIMP Palette
+Name: Color Palette by Color Scheme Designer #3A625o0uelvnyColumns: 4
+
+#
+ 48 101 157     primary 1
+ 55  92 130     primary 2
+ 24  71 120     primary 3
+ 84 137 193     primary 4
+103 147 193     primary 5
+ 84  55 165     secondary-a 1
+ 81  61 138     secondary-a 2
+ 54  28 127     secondary-a 3
+119  90 198     secondary-a 4
+133 110 198     secondary-a 5
+ 45 178  85     secondary-b 1
+ 56 148  84     secondary-b 2
+ 23 136  57     secondary-b 3
+ 80 206 118     secondary-b 4
+103 206 134     secondary-b 5
+241 168  60     complement 1
+200 150  75     complement 2
+184 123  31     complement 3
+246 186  95     complement 4
+246 197 123     complement 5
+
