@@ -14,7 +14,12 @@
 </style>
 <script>
 	$(function() {
-		$( "#sortable" ).sortable();
+		$( "#sortable" ).sortable({
+			update: function(event, ui) {
+				var fruitOrder = $(this).sortable("toArray", {attribute: "item"});
+				alert(fruitOrder);
+			}
+		});
 		$( "#sortable" ).disableSelection();
 		$( "a", ".demo" ).button();
 		$( "#additem", ".demo" ).click(function() { $("#adddialog").dialog('open'); return false; });
@@ -26,7 +31,7 @@
 			var dueon=$("#datepicker", "#adddialog").val();
 
 			/*i should do some checking here to see if it's all sane, don't give a shit right now*/			 
-			$("#sortable").append('<li class="ui-state-default"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+'</li>');
+			$("#sortable").append('<li class="ui-state-default" item="'+title+'"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+'</li>');
 
 			/*clear the dialog*/			
 			$("#adddialog").dialog("close");
@@ -49,7 +54,6 @@
 
 
 <ul id="sortable">
-	<li class="ui-state-default"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>Item 1</li>
 </ul>
 <a href="#" id="additem">Add an item</a>
 </div><!-- End demo -->
