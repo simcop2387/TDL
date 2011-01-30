@@ -5,16 +5,40 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.8/jquery-ui.min.js" type="text/javascript"></script>
 
-<!-- get rid of these -->
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.8/themes/base/jquery-ui.css" type="text/css" media="all" />
-<link rel="stylesheet" href="http://static.jquery.com/ui/css/demo-docs-theme/ui.theme.css" type="text/css" media="all" />
+
 
 <style>
 	#sortable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
-	#sortable li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 1.5em; font-size: 1.4em; height: 18px;}
+	#sortable li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 1.5em; height: 18px;}
 	#sortable li span { position: absolute; margin-left: -1.3em; }
 	
-	.todoitem {list-style-image: url("arrows.png")}
+
+.primary-1 { background-color: #30659D }
+.primary-2 { background-color: #375C82 }
+.primary-3 { background-color: #184778 }
+.primary-4 { background-color: #5489C1 }
+.primary-5 { background-color: #6893C1 }
+
+.secondary-a-1 { background-color: #5437A5 }
+.secondary-a-2 { background-color: #513D8A }
+.secondary-a-3 { background-color: #361C7F }
+.secondary-a-4 { background-color: #775AC6 }
+.secondary-a-5 { background-color: #856EC6 }
+
+.secondary-b-1 { background-color: #2DB255 }
+.secondary-b-2 { background-color: #389454 }
+.secondary-b-3 { background-color: #178839 }
+.secondary-b-4 { background-color: #50CE76 }
+.secondary-b-5 { background-color: #67CE86 }
+
+.complement-1 { background-color: #F1A83C }
+.complement-2 { background-color: #C8964B }
+.complement-3 { background-color: #B87B1F }
+.complement-4 { background-color: #F6BA5F }
+.complement-5 { background-color: #F6C57B }
+	
+	
+	.todoitem {}
 </style>
 <script>
    var items=new Array();
@@ -24,7 +48,7 @@
      var myitem={title: title, id: id, due: due};
      items.push(myitem);
      
-	  $("#sortable").append('<li class="todoitem" id="todo_'+id+'">'+title+'</li>');
+	  $("#sortable").append('<li class="ui-state-default ui-corner-all" id="todo_'+id+'"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+'</li>');
 	  $("#sortable").sortable("refresh");
 	  
 	  sendlist();
