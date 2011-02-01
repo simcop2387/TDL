@@ -38,6 +38,12 @@ $(function() {
     });
   }
   
+  function adddialog(list) {
+  }
+  
+  function editdialog(id) {
+  }
+    
   function maketab(title) {
     var id=lists.length; /*which number are we now*/
     lists.push({id: id, title: title});
