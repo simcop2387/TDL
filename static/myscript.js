@@ -9,16 +9,31 @@ $(function() {
 
   function makeitem(title, due) {
     var id=items.length;
-    var myitem={title: title, id: id, due: due, list: current_list};
+    var myitem={title: title, id: id, due: due, list: current_list, status: 0};
     items.push(myitem);
     
-    var sortlist=$(".connectedSortable", "#tab_"+ current_list);
+    var $sortlist=$(".connectedSortable", "#tab_"+ current_list);
+    var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+id+
+                  '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+
+                  '<span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
     
-    sortlist.append('<li class="ui-state-default ui-corner-all" id="todo_'+id+
-                    '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+
-                    '<span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
+    $item.find("span.ui-icon-circle-check").click(function() {
+      alert("you finished "+id+" ["+title+"]");
+      $item.removeClass("ui-state-default").addClass("ui-state-highlight");
+      myitem.status=1;
+      /*sendupdate*/
+    });
+    
+    $item.find("span.ui-icon-wrench").click(function() {
+      alert("you configured "+id+" ["+title+"]");
+      /*open edit dialog*/
+      /*sendupdate*/
+    });
+    
+    $sortlist.append($item);
 
-    sortlist.sortable("refresh");
+    $sortlist.sortable("refresh");
+    /*sendupdate*/
   };
   
   function setdroppable() {
@@ -69,7 +84,7 @@ $(function() {
     return true;
   }
   
-  $tabs.tabs();
+  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='ui-icon ui-icon-close'>Remove Tab</span></li>",});
   $( "#tabs ul li" )
     .addClass( "ui-corner-all" );
   
