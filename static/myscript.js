@@ -52,14 +52,12 @@ $(function() {
     var sortable=newtab.find("ul");
     
     newtab.attr("id","tab_"+id);
-    sortable.sortable({
-      update: function(event, ui) {/*sendlist();*/},
-      placeholder: "ui-state-highlight"
-    });
+    sortable.sortable();
     sortable.disableSelection();
     
     $tabs.append(newtab);
     $tabs.tabs("add", "#tab_"+id, title);
+    setdroppable();
   }
     
   function checktitle(title) {
