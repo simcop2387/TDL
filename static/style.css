@@ -7,6 +7,13 @@ body{ font-size: 75%; }/* background-image: url('back.png'); background-attachme
 .pullright {float: right;}
 .clear {clear: both;}
 
+
+.tabs-side { position: relative; background: #FF0000;} 
+.tabs-side .ui-tabs-panel { overflow: auto; } 
+.tabs-side .ui-tabs-nav { width: 350px; background: #FFFF00; position: fixed !important; left: 0; border: 0px none; border-radius:0px; padding: 0 0.2em 0.2em 0; } 
+.tabs-side .ui-tabs-nav li { float: left; clear: left; height: 90%; width: 340px; margin: 2px; }
+.tabs-side .ui-tabs-nav a {width: 315px;}
+
 .primary-1 { background-color: #30659D }
 .primary-2 { background-color: #375C82 }
 .primary-3 { background-color: #184778 }

@@ -12,13 +12,13 @@ $(function() {
     var myitem={title: title, id: id, due: due, list: current_list};
     items.push(myitem);
     
-    var sortlist=$(".sortable", "#tab_"+ current_list);
+    var sortlist=$(".connectedSortable", "#tab_"+ current_list);
     
     sortlist.append('<li class="ui-state-default ui-corner-all" id="todo_'+id+
                     '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+
-                    '<span class="pullright ui-icon ui-icon-close"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
+                    '<span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
 
-    sortable.sortable("refresh");
+    sortlist.sortable("refresh");
   };
   
   function setdroppable() {
@@ -69,8 +69,17 @@ $(function() {
     return true;
   }
   
-  $("#tabs").tabs();
+  $tabs.tabs();
+  $( "#tabs ul li" )
+    .addClass( "ui-corner-all" );
+  
   maketab("Testing");
   maketab("Testing2");
   maketab("Testing3");
+  
+  makeitem("Testing", "tet");
+  makeitem("Testing2", "tet");
+  makeitem("Testing3", "tet");
+  makeitem("Testing4", "tet");
+  makeitem("Testing5", "tet");
 });
