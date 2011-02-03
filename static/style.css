@@ -11,11 +11,11 @@ body{ font-size: 75%; }/* background-image: url('back.png'); background-attachme
 
 .tabs-side { position: absolute; background: none; border: none; height: 100%; width: 90%; margin: 0; padding: 0; z-index: -12;} 
 
-.tabs-side .ui-tabs-panel { 
+.tabs-side .ui-tabs-panel {
   left: 350px; right: 30px;
   position: absolute !important; overflow: auto;
   height: 100%;
-  z-index: -11;
+  z-index: -1;
 }
 
 .tabs-side .ui-tabs-nav {
@@ -23,13 +23,13 @@ body{ font-size: 75%; }/* background-image: url('back.png'); background-attachme
   left: 0; border: 0px none; border-radius:0px; padding: 0 0.2em 0.2em 0;
 }
 .tabs-side .ui-tabs-nav li { 
-  float: left; clear: left; height: 90%; width: 340px; margin: 2px; border-radius: 3px;
+  float: left; clear: left; width: 340px; margin: 2px; border-radius: 3px;
 }
 .tabs-side .ui-tabs-nav a {width: 290px;}
 
-.tabs-side .ui-tabs-nav {z-index: -10;}
-.tabs-side .ui-tabs-nav li {z-index: -5;}
-.tabs-side .ui-tabs-nav li a,span {z-index: -4;}
-.tabs-side .ui-tabs-panel * {z-index: -1;}
+.tabs-side .ui-tabs-nav {z-index: 0;}
+.tabs-side .ui-tabs-nav li {z-index: 1;}
+.tabs-side .ui-tabs-nav li a,span {z-index: 2;}
+.tabs-side .ui-tabs-panel * {z-index: 3;}
 
 .hidden {display: none;}

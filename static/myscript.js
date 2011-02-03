@@ -38,6 +38,7 @@ $(function() {
   
   function setdroppable() {
     var $tab_items = $( "ul:first li", $tabs ).droppable({
+      tolerance: 'pointer',
       accept: ".connectedSortable li",
       hoverClass: "ui-state-hover",
       drop: function( event, ui ) {
@@ -70,7 +71,7 @@ $(function() {
     sortable.sortable();
     sortable.disableSelection();
     
-    $tabs.append(newtab);
+    $tabs.prepend(newtab);
     $tabs.tabs("add", "#tab_"+id, title);
     setdroppable();
   }
@@ -85,8 +86,6 @@ $(function() {
   }
   
   $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='ui-icon ui-icon-close'>Remove Tab</span></li>",});
-  $( "#tabs ul li" )
-    .addClass( "ui-corner-all" );
   
   maketab("Testing");
   maketab("Testing2");
