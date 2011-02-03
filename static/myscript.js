@@ -74,6 +74,7 @@ $(function() {
     $tabs.prepend(newtab);
     $tabs.tabs("add", "#tab_"+id, title);
     setdroppable();
+    $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
   }
     
   function checktitle(title) {
@@ -85,8 +86,11 @@ $(function() {
     return true;
   }
   
-  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='ui-icon ui-icon-close'>Remove Tab</span></li>",});
+  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='ui-icon ui-icon-close'>Remove Tab</span></li>",})
+       .addClass('ui-tabs-vertical ui-helper-clearfix');
   
+  $tabs.removeClass('ui-widget-content');
+
   maketab("Testing");
   maketab("Testing2");
   maketab("Testing3");
@@ -96,4 +100,6 @@ $(function() {
   makeitem("Testing3", "tet");
   makeitem("Testing4", "tet");
   makeitem("Testing5", "tet");
+  
+  maketab("Testing3");
 });
