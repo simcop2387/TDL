@@ -80,7 +80,7 @@ $(function() {
     $tabs.tabs("add", "#tab_"+id, title);
     setdroppable();
     $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
-    
+    $tabs.find(".ui-tabs-nav").sortable("refresh");
     makeaddtab();
   }
     
@@ -94,7 +94,8 @@ $(function() {
   }
   
   $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='ui-icon ui-icon-close'>Remove Tab</span></li>",})
-       .addClass('ui-tabs-vertical ui-helper-clearfix');
+       .addClass('ui-tabs-vertical ui-helper-clearfix')
+       .find('.ui-tabs-nav').sortable({axis: "y"});
   
   $tabs.removeClass('ui-widget-content');
 
