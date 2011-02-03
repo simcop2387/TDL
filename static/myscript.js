@@ -94,12 +94,11 @@ $(function() {
   maketab("Testing");
   maketab("Testing2");
   maketab("Testing3");
+  maketab("Testing4");
+
+  var i;
+  for (i=0; i<10; i++)
+    for (current_list=0; current_list<4; current_list++)
+      makeitem("Testing "+i+"::"+current_list, "tet");
   
-  makeitem("Testing", "tet");
-  makeitem("Testing2", "tet");
-  makeitem("Testing3", "tet");
-  makeitem("Testing4", "tet");
-  makeitem("Testing5", "tet");
-  
-  maketab("Testing3");
 });
