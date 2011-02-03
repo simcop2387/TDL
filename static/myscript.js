@@ -59,7 +59,12 @@ $(function() {
   
   function editdialog(id) {
   }
-    
+   
+  function makeaddtab() {
+    $tabs.find('ul.ui-tabs-nav button').remove();
+    $tabs.find('ul.ui-tabs-nav').append("<button>testing</button>");
+  }
+  
   function maketab(title) {
     var id=lists.length; /*which number are we now*/
     lists.push({id: id, title: title});
@@ -75,6 +80,8 @@ $(function() {
     $tabs.tabs("add", "#tab_"+id, title);
     setdroppable();
     $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
+    
+    makeaddtab();
   }
     
   function checktitle(title) {
@@ -91,6 +98,8 @@ $(function() {
   
   $tabs.removeClass('ui-widget-content');
 
+  makeaddtab();
+  
   maketab("Testing");
   maketab("Testing2");
   maketab("Testing3");
