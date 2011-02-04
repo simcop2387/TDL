@@ -26,21 +26,23 @@
 
 <div class="hidden" id="hidden">
   <!-- dialog boxes! -->
-  <div id="adddialog" title="Add an item">
-    Title: <input id="addtitle" type="text" /><br />
-    Due date: <input id="adddatepicker" type="text" /> <a href="#" class="_savechanges">Save Changes</a> <a href="#" class="_cancel">Cancel</a>
+  <div id="_add_todo" title="Add a todo">
+    Title: <input class="title" type="text" /><br />
+    Due date: <input class="datepicker" type="text" />
+    <button class="_savechanges">Add todo</button> <button class="_cancel">Cancel</button>
   </div>
 
-  <div id="editdialog" title="Edit this item">
-    Title: <input id="edittitle" type="text" /><br />
-    Due date: <input id="editdatepicker" type="text" /> <a href="#" class="_savechanges">Save Changes</a> <a href="#" class="_cancel">Cancel</a>
+  <div id="_edit_todo" title="Edit this todo">
+    Title: <input class="edittitle" type="text" /><br />
+    Due date: <input class="editdatepicker" type="text" />
+    <button class="_savechanges">Save Changes</button> <button class="_cancel">Cancel</button>
   </div>
   <!-- premade tab -->
 
   <div id="_tab">
     <ul class="connectedSortable ui-helper-reset">
     </ul>
-    <button>Add item</button>
+    <button class="additem">Add item</button>
   </div>
 </div>
 

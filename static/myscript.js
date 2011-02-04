@@ -37,10 +37,11 @@ $(function() {
   var $tabs=$("#tabs");
   var $_tab=$("#_tab");
   var $hidden=$("#hidden");
+  var $_add_dialog=$("#_add_todo");
+  var $_edit_dialog=$("#_edit_todo");
   
   var lists=new Array();
   var items=new Array();
-  var current_list="tab_0";
 
   var lists_id=0, items_id=0;
 
@@ -114,6 +115,31 @@ $(function() {
   *****************************************************/
 
   function add_dialog(list) {
+    var dialog = $_add_dialog.clone();
+    console.log("INADD");
+    dialog.attr("id", null); // clear the id
+    $("body").append(dialog);
+    dialog.dialog({
+      close: function() {
+        dialog.remove();
+      },
+    });
+
+    dialog.find(".datepicker").datepicker();
+
+    dialog.find("._savechanges").click(function() {
+      var title = dialog.find(".title").val();
+      var date = dialog.find(".datepicker").val();
+
+      if (!checktitle(title)) {
+        dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+      } else {
+        make_todo(list.id, title, date);
+        dialog.dialog("close");
+      }
+    });
+
+    dialog.find("._cancel").click(function(){dialog.dialog("close")});
   }
 
   function edit_dialog(id) {
@@ -122,18 +148,26 @@ $(function() {
   /**********************************************
   * Misc. functions                             *
   **********************************************/
+  function checktitle(title) {
+    if (title === "")
+      return false;
+
+    /*add more checks later*/
+
+    return true;
+  }
 
   /**********************************************
   * Creation functions                          *
   **********************************************/
 
-  function make_todo(title, due) {
+  function make_todo(list, title, due) {
     var id=items_id++;
-    var myitem={title: title, id: id, due: due, list: current_list, status: 0, order: lists[current_list].size++};
+    var myitem={title: title, id: id, due: due, list: list, status: 0, order: lists[list].size++};
 
     items["todo_"+id]=myitem;
 
-    var $sortlist=$(".connectedSortable", "#" + current_list);
+    var $sortlist=$(".connectedSortable", "#" + list);
     var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+id+
                   '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+
                   '<span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
@@ -192,7 +226,7 @@ $(function() {
 
   function make_listbutt() {
     $tabs.find('ul.ui-tabs-nav button').remove();
-    $tabs.find('ul.ui-tabs-nav').append("<button>testing</button>");
+    $tabs.find('ul.ui-tabs-nav').append("<button class='addlist'>Add new list</button>");
   }
 
   function make_list(title) {
@@ -204,11 +238,18 @@ $(function() {
     var sortable=newtab.find("ul");
 
     newtab.attr("id","tab_"+id);
+    newtab.find('.additem').button().click(function(){
+      /* they asked to make a new item! */
+      add_dialog(mylist);
+      $(this).blur();
+    });
+    
     sortable.sortable({
       update: function(event, ui) {
         update_list(mylist);
       }
     });
+    
     sortable.disableSelection();
 
     $tabs.prepend(newtab);
@@ -221,16 +262,7 @@ $(function() {
     /* send new list */
     new_list(mylist);
   }
-
-  function checktitle(title) {
-    if (title === "")
-      return false;
-
-    /*add more checks later*/
-
-    return true;
-  }
-
+  
   /* init code */
   $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='ui-icon ui-icon-close'>Remove Tab</span></li>",})
        .addClass('ui-tabs-vertical ui-helper-clearfix')
@@ -245,12 +277,4 @@ $(function() {
   make_list("Testing2");
   make_list("Testing3");
   make_list("Testing4");
-
-  var i,cl;
-  for (i=0; i<10; i++)
-    for (cl=0; cl<4; cl++)
-    {
-      current_list="tab_"+cl;
-      make_todo("Testing "+i+"::"+current_list, "tet"); 
-    }
 });
