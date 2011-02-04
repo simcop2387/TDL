@@ -49,7 +49,7 @@ $(function() {
   * Creation functions                          *
   **********************************************/
     
-  function makeitem(title, due) {
+  function make_todo(title, due) {
     var id=items.length;
     var myitem={title: title, id: id, due: due, list: current_list, status: 0};
     items.push(myitem);
@@ -59,9 +59,8 @@ $(function() {
                   '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+
                   '<span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
 
-    var check=$item.find("span.ui-icon-circle-check");
+    var check=$item.find(".ui-icon-circle-check");
     var finishme=function() {
-      alert("you finished "+id+" ["+title+"]");
       $item.removeClass("ui-state-default").addClass("ui-state-highlight");
       myitem.status=1;
 
@@ -71,7 +70,6 @@ $(function() {
     };
     
     var unfinishme=function() {
-      alert("you unfinished "+id+" ["+title+"]");
       $item.removeClass("ui-state-highlight").addClass("ui-state-default");
       myitem.status=0;
 
@@ -79,9 +77,10 @@ $(function() {
       change_todo(myitem);
       check.click(finishme);
     };
+
+    check.click(finishme);
     
     $item.find("span.ui-icon-wrench").click(function() {
-      alert("you configured "+id+" ["+title+"]");
       /*open edit dialog*/
     });
     

@@ -8,6 +8,12 @@ body{ font-size: 75%; }/* background-image: url('back.png'); background-attachme
 
 .hidden {display: none;}
 
+{
+  background: url("jq/images/ui-bg_inset-hard_55_f6ba5f_1x100.png") repeat-x scroll 50% bottom #F6BA5F;
+  border: 1px solid #C8964B;
+  color: #52370F;
+}
+
 /* Vertical Tabs
 ----------------------------------*/
 .ui-tabs-vertical { width: 100%; }
