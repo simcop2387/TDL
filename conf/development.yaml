@@ -1,0 +1,9 @@
+database:
+    hostname: "localhost"
+    database: "todoer"
+    username: "todoer"
+    password: "workspaces"
+paths:
+    static_files: /home/ryan/workspace/todoer/static/
+server:
+    x_send_file: 1
