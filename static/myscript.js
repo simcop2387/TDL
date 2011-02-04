@@ -98,6 +98,10 @@ $(function() {
     /* send new list */
   }
 
+  function edit_todo(id) {
+    /* edited the todo item */
+  }
+
   function change_todo(myitem) {
     /* send the todo finish or unfinish event */
   }
@@ -114,9 +118,9 @@ $(function() {
   * UI callbacks - doesn't send updates, just ui stuff *
   *****************************************************/
 
-  function add_dialog(list) {
+  function add_todo_dialog(list) {
     var dialog = $_add_dialog.clone();
-    console.log("INADD");
+
     dialog.attr("id", null); // clear the id
     $("body").append(dialog);
     dialog.dialog({
@@ -142,7 +146,42 @@ $(function() {
     dialog.find("._cancel").click(function(){dialog.dialog("close")});
   }
 
-  function edit_dialog(id) {
+  function edit_todo_dialog(myitem) {
+    var dialog = $_edit_dialog.clone();
+
+    dialog.attr("id", null); // clear the id
+    $("body").append(dialog);
+    dialog.dialog({
+      close: function() {
+        dialog.remove();
+      },
+    });
+
+    dialog.find(".datepicker").datepicker();
+    dialog.find(".datepicker").val(myitem.due);
+    dialog.find(".title").val(myitem.title);
+
+    dialog.find("._savechanges").click(function() {
+      var title = dialog.find(".title").val();
+      var date = dialog.find(".datepicker").val();
+
+      if (!checktitle(title)) {
+        dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+      } else {
+
+        /* update li */
+        var $li = $("#todo_"+myitem.id);
+        console.log($li.attr("id"));
+        $li.find(".title").replaceWith("<span class='title'>"+title+"</span>");
+        myitem.title=title;
+        myitem.due = date;
+
+        edit_todo(myitem);
+        dialog.dialog("close");
+      }
+    });
+
+    dialog.find("._cancel").click(function(){dialog.dialog("close")});
   }
 
   /**********************************************
@@ -169,7 +208,7 @@ $(function() {
 
     var $sortlist=$(".connectedSortable", "#" + list);
     var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+id+
-                  '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+
+                  '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span><span class="title">'+title+'</span>'+
                   '<span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
 
     var check=$item.find(".ui-icon-circle-check");
@@ -194,7 +233,7 @@ $(function() {
     check.click(finishme);
 
     $item.find("span.ui-icon-wrench").click(function() {
-      /*open edit dialog*/
+      edit_todo_dialog(myitem);
     });
 
     $sortlist.append($item);
@@ -240,7 +279,7 @@ $(function() {
     newtab.attr("id","tab_"+id);
     newtab.find('.additem').button().click(function(){
       /* they asked to make a new item! */
-      add_dialog(mylist);
+      add_todo_dialog(mylist);
       $(this).blur();
     });
     
