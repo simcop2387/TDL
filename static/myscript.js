@@ -1,3 +1,46 @@
+/**
+* Function : dump()
+* Arguments: The data - array,hash(associative array),object
+*    The level - OPTIONAL
+* Returns  : The textual representation of the array.
+* This function was inspired by the print_r function of PHP.
+* This will accept some data as the argument and return a
+* text that will be a more readable version of the
+* array/hash/object that is given.
+*/
+function dump(arr,level) {
+var dumped_text = "";
+if(!level) level = 0;
+
+//The padding given at the beginning of the line.
+var level_padding = "";
+for(var j=0;j<level+1;j++) level_padding += "    ";
+
+if(typeof(arr) == 'object') { //Array/Hashes/Objects
+ for(var item in arr) {
+  var value = arr[item];
+
+  if(typeof(value) == 'object') { //If it is an array,
+   dumped_text += level_padding + "'" + item + "' ...\n";
+   dumped_text += dump(value,level+1);
+  } else {
+   dumped_text += level_padding + "'" + item + "' => \"" + value + "\"\n";
+  }
+ }
+} else { //Stings/Chars/Numbers etc.
+ dumped_text = "===>"+arr+"<===("+typeof(arr)+")";
+}
+return dumped_text;
+} 
+
+
+
+
+
+
+
+
+
 $(function() {
   var $tabs=$("#tabs");
   var $_tab=$("#_tab");
@@ -5,14 +48,24 @@ $(function() {
   
   var lists=new Array();
   var items=new Array();
-  var current_list=0;
+  var current_list="tab_0";
+
+  var lists_id=0, items_id=0;
+
+  /****INIT ONLY FUNC*****/
+  function set_ids(list, item) {
+    lists_id = list; items_id = item;
+  }
 
   /**********************************************
   * Event callbacks                             *
   **********************************************/
   
-  function updatelists(event, ui) {
+  function update_lists(event, ui) {
     /* send tab updates */
+  }
+
+  function update_list(mylist) {
   }
   
   function changelist($item, that, $list, listelem) {
@@ -39,22 +92,27 @@ $(function() {
   * UI callbacks - doesn't send updates, just ui stuff *
   *****************************************************/
 
-  function adddialog(list) {
+  function add_dialog(list) {
   }
   
-  function editdialog(id) {
+  function edit_dialog(id) {
   }
+
+  /**********************************************
+  * Misc. functions                             *
+  **********************************************/
   
   /**********************************************
   * Creation functions                          *
   **********************************************/
     
   function make_todo(title, due) {
-    var id=items.length;
-    var myitem={title: title, id: id, due: due, list: current_list, status: 0};
-    items.push(myitem);
+    var id=items_id++;
+    var myitem={title: title, id: id, due: due, list: current_list, status: 0, order: 0};
+
+    items["todo_"+id]=myitem;
     
-    var $sortlist=$(".connectedSortable", "#tab_"+ current_list);
+    var $sortlist=$(".connectedSortable", "#" + current_list);
     var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+id+
                   '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+
                   '<span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
@@ -101,8 +159,8 @@ $(function() {
         var $item = $( this );
         var $list = $( $item.find( "a" ).attr( "href" ) )
                     .find( ".connectedSortable" );
-        // i don't know what i want here
-        changelist($item, this, $list, $item.find( "a" ).attr( "href" ));
+        // i don't know what i want here, i think $item and $list are what i want but we'll see
+        change_list($item, this, $list, $item.find( "a" ).attr( "href" ));
 
         ui.draggable.hide( "slow", function() {
           $tabs.tabs( "select", $tab_items.index( $item ) );
@@ -118,15 +176,19 @@ $(function() {
   }
   
   function make_list(title) {
-    var id=lists.length; /*which number are we now*/
-    var mylist={id: id, title: title};
-    lists.push(mylist);
+    var id=lists_id++; /*which number are we now*/
+    var mylist={id: id, title: title, size: 0};
+    lists["tab_"+id]=mylist;
     
     var newtab=$_tab.clone();
     var sortable=newtab.find("ul");
     
     newtab.attr("id","tab_"+id);
-    sortable.sortable();
+    sortable.sortable({
+      update: function(event, ui) {
+        update_list(id);
+      }
+    });
     sortable.disableSelection();
     
     $tabs.prepend(newtab);
@@ -152,7 +214,7 @@ $(function() {
   /* init code */
   $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='ui-icon ui-icon-close'>Remove Tab</span></li>",})
        .addClass('ui-tabs-vertical ui-helper-clearfix')
-       .find('.ui-tabs-nav').sortable({axis: "y", updated: updatelists});
+       .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
   
   $tabs.removeClass('ui-widget-content');
 
@@ -164,9 +226,12 @@ $(function() {
   make_list("Testing3");
   make_list("Testing4");
 
-  var i;
+  var i,cl;
   for (i=0; i<10; i++)
-    for (current_list=0; current_list<4; current_list++)
-      make_todo("Testing "+i+"::"+current_list, "tet");
+    for (cl=0; cl<4; cl++)
+    {
+      current_list="tab_"+cl;
+      make_todo("Testing "+i+"::"+current_list, "tet"); 
+    }
   
 });
