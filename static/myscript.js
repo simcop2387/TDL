@@ -31,15 +31,7 @@ if(typeof(arr) == 'object') { //Array/Hashes/Objects
  dumped_text = "===>"+arr+"<===("+typeof(arr)+")";
 }
 return dumped_text;
-} 
-
-
-
-
-
-
-
-
+}
 
 $(function() {
   var $tabs=$("#tabs");
@@ -60,16 +52,43 @@ $(function() {
   /**********************************************
   * Event callbacks                             *
   **********************************************/
-  
+
   function update_lists(event, ui) {
-    /* send tab updates */
+    /* update the order of the lists themselves */
   }
 
   function update_list(mylist) {
+    /* update the order of a single list */
+    var id=mylist.id; // who are we checking?
+    var what=$("#"+id+" li");
+    var arr = new Array();
+
+    what.each(function() {
+      arr.push($(this).attr("id"));
+    });
+
+    /* now we have all the id's in the correct order */
+
+    $.each(arr, function(i, v){
+      items[v].order=i;
+    });
+
+    /* send ajax post for mylist and arr */
   }
-  
-  function change_list($item, that, $list, listelem) {
+
+  function change_list($item, listelem) {
     /* send new order of lists */
+    /* listelem is the new list */
+    var item = $item.attr("id");
+    var oldlist = items[item].list;
+
+    items[item].list = listelem; /* set the new list */
+
+    // send item update, with new list
+    change_todo(items[item]);
+    // send order of old list and new list
+    update_list(lists[oldlist]);
+    update_list(lists[listelem]);
   }
 
   function new_list(mylist) {
@@ -94,24 +113,24 @@ $(function() {
 
   function add_dialog(list) {
   }
-  
+
   function edit_dialog(id) {
   }
 
   /**********************************************
   * Misc. functions                             *
   **********************************************/
-  
+
   /**********************************************
   * Creation functions                          *
   **********************************************/
-    
+
   function make_todo(title, due) {
     var id=items_id++;
-    var myitem={title: title, id: id, due: due, list: current_list, status: 0, order: 0};
+    var myitem={title: title, id: id, due: due, list: current_list, status: 0, order: lists[current_list].size++};
 
     items["todo_"+id]=myitem;
-    
+
     var $sortlist=$(".connectedSortable", "#" + current_list);
     var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+id+
                   '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span>'+title+
@@ -126,7 +145,7 @@ $(function() {
       change_todo(myitem);
       check.click(unfinishme);
     };
-    
+
     var unfinishme=function() {
       $item.removeClass("ui-state-highlight").addClass("ui-state-default");
       myitem.status=0;
@@ -137,11 +156,11 @@ $(function() {
     };
 
     check.click(finishme);
-    
+
     $item.find("span.ui-icon-wrench").click(function() {
       /*open edit dialog*/
     });
-    
+
     $sortlist.append($item);
 
     $sortlist.sortable("refresh");
@@ -149,7 +168,7 @@ $(function() {
     /*sendupdate*/
     new_todo(myitem);
   };
-  
+
   function setdroppable() {
     var $tab_items = $( "ul:first li", $tabs ).droppable({
       tolerance: 'pointer',
@@ -160,12 +179,12 @@ $(function() {
         var $list = $( $item.find( "a" ).attr( "href" ) )
                     .find( ".connectedSortable" );
         // i don't know what i want here, i think $item and $list are what i want but we'll see
-        change_list($item, this, $list, $item.find( "a" ).attr( "href" ));
 
         ui.draggable.hide( "slow", function() {
-          //$tabs.tabs( "select", $tab_items.index( $item ) );
-          $( this ).appendTo( $list ).show( "slow" );
+          $( this ).appendTo( $list ).show();
         });
+
+        change_list(ui.draggable, $item.find( "a" ).attr( "href" ).substr(1));
       }
     });
   }
@@ -174,23 +193,23 @@ $(function() {
     $tabs.find('ul.ui-tabs-nav button').remove();
     $tabs.find('ul.ui-tabs-nav').append("<button>testing</button>");
   }
-  
+
   function make_list(title) {
     var id=lists_id++; /*which number are we now*/
-    var mylist={id: id, title: title, size: 0};
+    var mylist={id: "tab_"+id, title: title, size: 0};
     lists["tab_"+id]=mylist;
-    
+
     var newtab=$_tab.clone();
     var sortable=newtab.find("ul");
-    
+
     newtab.attr("id","tab_"+id);
     sortable.sortable({
       update: function(event, ui) {
-        update_list(id);
+        update_list(mylist);
       }
     });
     sortable.disableSelection();
-    
+
     $tabs.prepend(newtab);
     $tabs.tabs("add", "#tab_"+id, title);
     setdroppable();
@@ -201,12 +220,12 @@ $(function() {
     /* send new list */
     new_list(mylist);
   }
-    
+
   function checktitle(title) {
     if (title === "")
-      return false;   
+      return false;
 
-    /*add more checks later*/       
+    /*add more checks later*/
 
     return true;
   }
@@ -215,7 +234,7 @@ $(function() {
   $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='ui-icon ui-icon-close'>Remove Tab</span></li>",})
        .addClass('ui-tabs-vertical ui-helper-clearfix')
        .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
-  
+
   $tabs.removeClass('ui-widget-content');
 
   make_listbutt();
@@ -233,5 +252,4 @@ $(function() {
       current_list="tab_"+cl;
       make_todo("Testing "+i+"::"+current_list, "tet"); 
     }
-  
 });
