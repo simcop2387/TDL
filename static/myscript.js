@@ -68,8 +68,10 @@ $(function() {
     });
 
     /* now we have all the id's in the correct order */
-
+    console.log("UPDATE: ", mylist.id)
     $.each(arr, function(i, v){
+      console.log("WTF: ",v);
+      if (v) // ignore stuff that has no id
       items[v].order=i;
     });
 
@@ -181,10 +183,9 @@ $(function() {
         // i don't know what i want here, i think $item and $list are what i want but we'll see
 
         ui.draggable.hide( "slow", function() {
-          $( this ).appendTo( $list ).show();
+          ui.draggable.appendTo( $list ).show();
+          change_list(ui.draggable, $item.find( "a" ).attr( "href" ).substr(1));
         });
-
-        change_list(ui.draggable, $item.find( "a" ).attr( "href" ).substr(1));
       }
     });
   }
