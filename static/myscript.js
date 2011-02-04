@@ -68,7 +68,7 @@ $(function() {
   function update_list(mylist) {
   }
   
-  function changelist($item, that, $list, listelem) {
+  function change_list($item, that, $list, listelem) {
     /* send new order of lists */
   }
 
@@ -163,7 +163,7 @@ $(function() {
         change_list($item, this, $list, $item.find( "a" ).attr( "href" ));
 
         ui.draggable.hide( "slow", function() {
-          $tabs.tabs( "select", $tab_items.index( $item ) );
+          //$tabs.tabs( "select", $tab_items.index( $item ) );
           $( this ).appendTo( $list ).show( "slow" );
         });
       }
