@@ -43,17 +43,17 @@ my $app = Site::Dispatch->new(
         { url => qr|^/static/|, call => \&Site::Pages::Static::handle  },
         # misc methods
         { url => qr|^/ajaj/login$|,   call => \&Site::Pages::Login::handle   },
-        { url => qr|^/ajaj/getdata$|, call => \&Site::Pages::AJAJ::getdata   },
+        { url => qr|^/ajaj/getdata$|, call => \&Site::Pages::AJAJ::getdata, test => \&Site::Util::test_session },
         # list manipulation pages
-        { url => qr|^/ajaj/list/new$|,    call => \&Site::Pages::AJAJ::Lists::new   },
-        { url => qr|^/ajaj/list/edit$|,   call => \&Site::Pages::AJAJ::Lists::edit   },
-        { url => qr|^/ajaj/list/order$|,  call => \&Site::Pages::AJAJ::Lists::order   },  # this is the order of the lists themselves, not the content
-        { url => qr|^/ajaj/list/delete$|, call => \&Site::Pages::AJAJ::Lists::delete   },
+        { url => qr|^/ajaj/list/new$|,    call => \&Site::Pages::AJAJ::Lists::new,    test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/list/edit$|,   call => \&Site::Pages::AJAJ::Lists::edit,   test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/list/order$|,  call => \&Site::Pages::AJAJ::Lists::order,  test => \&Site::Util::test_session   },  # this is the order of the lists themselves, not the content
+        { url => qr|^/ajaj/list/delete$|, call => \&Site::Pages::AJAJ::Lists::delete, test => \&Site::Util::test_session   },
         # todo manipulation pages
-        { url => qr|^/ajaj/todo/new$|,    call => \&Site::Pages::AJAJ::Todo::new   },
-        { url => qr|^/ajaj/todo/edit$|,   call => \&Site::Pages::AJAJ::Todo::edit   },
-        { url => qr|^/ajaj/todo/order$|,  call => \&Site::Pages::AJAJ::Todo::order   }, # this isn't REALLY an order on the todo, but the list the todo is on
-        { url => qr|^/ajaj/todo/delete$|, call => \&Site::Pages::AJAJ::Todo::delete   },
+        { url => qr|^/ajaj/todo/new$|,    call => \&Site::Pages::AJAJ::Todo::new,    test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/todo/edit$|,   call => \&Site::Pages::AJAJ::Todo::edit,   test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/todo/order$|,  call => \&Site::Pages::AJAJ::Todo::order,  test => \&Site::Util::test_session   }, # this isn't REALLY an order on the todo, but the list the todo is on
+        { url => qr|^/ajaj/todo/delete$|, call => \&Site::Pages::AJAJ::Todo::delete, test => \&Site::Util::test_session   },
 
         # this just redirects to / we don't have a real 404
         { url => qr||,            call => \&Site::Pages::404::handle  },

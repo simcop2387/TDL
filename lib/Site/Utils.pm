@@ -48,7 +48,20 @@ sub http_redirect {
     return $res;
 }
 
+sub test_session {
+    my ( $req ) = @_;
+    my ( $res, $con, $uri ) = get_request_info( $req );
 
+    # todo check the session
 
+    #return 0 if $uri =~ /\.\./;
+    return 1;
+}
+
+sub unroll_session { # todo
+    my ( $req ) = @_;
+
+   return (0); # for now i'm going to return a single user.  without registration and everything else this is fine for testing
+}
 
 1;
