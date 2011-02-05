@@ -12,3 +12,5 @@ sub handle_POST {
   
   $self->schema->resultset('List')->find({tid => $id})->delete();
 }
+
+1;

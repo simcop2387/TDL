@@ -20,10 +20,10 @@ use Site::Pages::AJAJ::Lists::Edit;
 use Site::Pages::AJAJ::Lists::Order;
 use Site::Pages::AJAJ::Lists::Delete;
 
-use Site::Pages::AJAJ::Todo::New;
-use Site::Pages::AJAJ::Todo::Edit;
-use Site::Pages::AJAJ::Todo::Order;
-use Site::Pages::AJAJ::Todo::Delete;
+use Site::Pages::AJAJ::Todos::New;
+use Site::Pages::AJAJ::Todos::Edit;
+use Site::Pages::AJAJ::Todos::Order;
+use Site::Pages::AJAJ::Todos::Delete;
 
 use Site::Pages::AJAJ::Login;
 use Site::Pages::404;

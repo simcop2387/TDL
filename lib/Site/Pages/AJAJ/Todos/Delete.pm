@@ -13,3 +13,5 @@ sub handle_POST {
 
   $self->schema->resultset('Todo')->find({tid => $id})->delete();
 }
+
+1;

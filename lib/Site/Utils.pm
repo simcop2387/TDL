@@ -6,7 +6,7 @@ use Site;
 
 require Exporter;
 our @ISA = qw/ Exporter /;
-our @EXPORT = qw/get_params get_request_info get_template http_method_not_allowed http_redirect test_session extend_session/;
+our @EXPORT = qw/get_request_info get_template http_method_not_allowed http_redirect test_session extend_session/;
 
 my $template = Template->new(
     {

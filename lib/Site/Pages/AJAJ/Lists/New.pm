@@ -22,7 +22,7 @@ sub handle_POST {
     }
     $newhash->{lid} = $id; # carry the id over
 
-    $list->create($newhash);
+    $self->schema->resultset('List')->create($newhash);
 
     $self->res->body('{success: true}');
   } else {
@@ -32,3 +32,5 @@ sub handle_POST {
   $self->res->headers({'Content-Type' => 'application/json'});
   return $self->res;
 }
+
+1;

@@ -39,6 +39,7 @@ Depedencies
 * DateTime::Format::Pg
 * File::MMagic
 * FCGI::ProcManager
+* Moose
 
 Installation
 --------------

@@ -28,3 +28,5 @@ sub handle_POST {
    $self->res->headers({'Content-Type' => 'application/json'});
   return $self->res;
 }
+
+1;
