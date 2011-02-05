@@ -1,4 +1,4 @@
-package Site::Pages::Edit;
+package Site::Pages::AJAJ::Todo;
 use strictures 1;
 
 use Site::Utils;

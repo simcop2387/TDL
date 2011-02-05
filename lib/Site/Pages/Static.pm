@@ -20,7 +20,8 @@ sub handle {
 
         $res->body( "GET Request [" . __FILE__ . "]" );
         return $res;
-    } 
+    }
+
     return http_method_not_allowed( $res );
 }
 

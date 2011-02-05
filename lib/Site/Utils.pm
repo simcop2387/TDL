@@ -40,7 +40,13 @@ sub http_method_not_allowed {
     return $res;
 }
 
-
+sub http_redirect {
+    my ($res, $where) = @_;
+    $res->status(302);
+    $res->headers({ Location => $where });
+    $res->body( "Permanently relocated to $where" );
+    return $res;
+}
 
 
 
