@@ -15,7 +15,12 @@ use Site::Schema;   # DBIC
 use Site::Config;   # YAML + Conf Validator
 
 ## Page Handlers ##
-use Site::Pages::AJAX;
+use Site::Pages::AJAJ::Lists;
+use Site::Pages::AJAJ::Todo;
+use Site::Pages::404;
+
+use Site::Pages::Main;
+
 use Site::Pages::Static;
 
 ####### Conf/DB Setup ########
