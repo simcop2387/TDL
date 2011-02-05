@@ -8,8 +8,7 @@ sub handle_POST {
   my ( $self ) = @_;
   
   my ( $uid ) = $self->unroll_session();
-  my ($title, $id) = $self->get_params(qw/title id/);
-
-
-
+  my ( $id ) = $self->get_params(qw/id/);
+  
+  $self->schema->resultset('List')->find({tid => $id})->delete();
 }

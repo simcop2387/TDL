@@ -3,6 +3,8 @@ use strictures 1;
 use Site::Utils;
 use Moo;
 
+use JSON::XS;
+
 has config => ( is => 'ro' );
 has schema => ( is => 'ro' );
 has req => ( is => 'rw' );
@@ -27,6 +29,12 @@ sub get_params {
   my ($self, @params) = @_;
   my $req=$self->req;
   return map {$req->param($_)} @params;
+}
+
+sub get_json {
+  my ($self, $param) = @_;
+
+  return decode_json $self->req->param($param);
 }
 
 sub unroll_session { # todo

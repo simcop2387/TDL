@@ -6,10 +6,10 @@ use Site::Utils;
 
 sub handle_POST {
   my ( $self ) = @_;
-  
   my ( $uid ) = $self->unroll_session();
-  my ($title, $id) = $self->get_params(qw/title id/);
 
+  my $data = $self->get_json('data');
+  my $id = $data->{id};
 
-
+  $self->schema->resultset('Todo')->find({tid => $id})->delete();
 }

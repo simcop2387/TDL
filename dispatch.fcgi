@@ -52,6 +52,7 @@ my $app = Site::Dispatch->new(
         { url => qr|^/static/|, package => "Site::Pages::Static", test => \&Site::Pages::Static::can_send  },
         # misc methods
         { url => qr|^/ajaj/login$|,   package => "Site::Pages::AJAJ::Login"   },
+        { url => qr|^/ajaj/login$|,   package => "Site::Pages::AJAJ::Logout",  test => \&Site::Util::test_session },
         { url => qr|^/ajaj/getdata$|, package => "Site::Pages::AJAJ::Getdata", test => \&Site::Util::test_session },
         # list manipulation pages
         { url => qr|^/ajaj/list/new$|,    package => "Site::Pages::AJAJ::Lists::New",    test => \&Site::Util::test_session   },

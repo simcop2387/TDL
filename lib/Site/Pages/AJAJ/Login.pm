@@ -8,11 +8,14 @@ sub handle_POST {
 
   # TODO: change this system to be more secure
   # Ideally i'd like to use a challenge response instead but this will suffice
-  my ($username, $passhash) = $self->get_params(qw/username passhash/);
+  $self->res->headers({'Content-Type' => 'application/json'});
+
+  my $data = $self->get_json('data');
+  my ($username, $passhash) = @{$data}{qw/username password/};
   
-  if (my $rs = $self->schema->resultset('User')
+  if (my $row = $self->schema->resultset('User')
     ->find({username => $username, password => $passhash})) {
-    my $uid = $rs->uid; # should have a uid here, can only get one row from the database due to constraints
+    my $uid = $row->uid; # should have a uid here, can only get one row from the database due to constraints
     my $key = make_session_key(); # get a new key, they aren't tied to the user or anything
 
     $self->res->body('{success: true}');
