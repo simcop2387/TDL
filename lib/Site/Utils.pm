@@ -2,10 +2,11 @@ package Site::Utils;
 use strictures 1;
 use Template;
 
+use Site;
+
 require Exporter;
 our @ISA = qw/ Exporter /;
-our @EXPORT = qw/get_params get_request_info get_template http_method_not_allowed http_redirect test_session unroll_session/;
-
+our @EXPORT = qw/get_params get_request_info get_template http_method_not_allowed http_redirect test_session extend_session/;
 
 my $template = Template->new(
     {
@@ -48,6 +49,8 @@ sub http_redirect {
     return $res;
 }
 
+###### Session helpers
+
 sub test_session {
     my ( $req ) = @_;
     my ( $res, $con, $uri ) = get_request_info( $req );
@@ -56,6 +59,12 @@ sub test_session {
 
     #return 0 if $uri =~ /\.\./;
     return 1;
+}
+
+#i might make this unneccesary, can't decide
+sub extend_session {
+  my ( $uid )= @_;
+  $Site::heap{schema}
 }
 
 1;
