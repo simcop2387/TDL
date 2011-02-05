@@ -6,10 +6,34 @@ use base qw/ Site::Pages /;
 sub handle_POST {
   my ( $self ) = @_;
 
+  # TODO: change this system to be more secure
+  # Ideally i'd like to use a challenge response instead but this will suffice
   my ($username, $passhash) = $self->get_params(qw/username passhash/);
+  
+  if (my $rs = $self->schema->resultset('User')
+    ->find({username => $username, password => $passhash})) {
+    my $uid = $rs->uid; # should have a uid here, can only get one row from the database due to constraints
+    my $key = make_session_key(); # get a new key, they aren't tied to the user or anything
 
+    $self->res->body('{success: true}');
+    $self->cookies->{session} = $key; # should default to expire on browser close by default
+    $self->schema->resultset('Session')->find({uid=>$uid})
+      ->update({sessionkey=>$key,
+                expires=>\[q[NOW() + interval '1 hour']],
+      });
+  } else {
+    # TODO should I be using a JSON module for this kind of response? it's fixed
+    $self->res->body('{success: false}');
+  }
+
+  return $self->res;
 }
 
-sub make_session {
-  my ($username) = @_;
+srand(time()); # TODO: not fully secure i know but at the moment it's just for testing
+my $chars = "0123456789ABCDEF";
+my $len = length($chars);
+sub make_session_key {
+  local $_;
+  $_.=substr($chars, rand()*$len, 1) for (1..32);
+  return $_;
 }
