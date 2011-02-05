@@ -11,7 +11,6 @@ sub handle_POST {
   my $data = $self->get_json('data');
   my $id = $data->{id};
 
-  
   if (my $list=$self->schema->resultset('List')->find({uid => $uid, lid => $id})) {
     my $newhash;
     
