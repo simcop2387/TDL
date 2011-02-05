@@ -15,8 +15,17 @@ use Site::Schema;   # DBIC
 use Site::Config;   # YAML + Conf Validator
 
 ## Page Handlers ##
-use Site::Pages::AJAJ::Lists;
-use Site::Pages::AJAJ::Todo;
+use Site::Pages::AJAJ::Lists::New;
+use Site::Pages::AJAJ::Lists::Edit;
+use Site::Pages::AJAJ::Lists::Order;
+use Site::Pages::AJAJ::Lists::Delete;
+
+use Site::Pages::AJAJ::Todo::New;
+use Site::Pages::AJAJ::Todo::Edit;
+use Site::Pages::AJAJ::Todo::Order;
+use Site::Pages::AJAJ::Todo::Delete;
+
+use Site::Pages::AJAJ::Login;
 use Site::Pages::404;
 
 use Site::Pages::Main;
@@ -40,7 +49,7 @@ $Site::heap{'config'} = $config;
 my $app = Site::Dispatch->new(
     [
         { url => qr|^/|,        package => "Site::Pages::Main" }, # main site, really just a version of static but without the filename
-        { url => qr|^/static/|, package => "Site::Pages::Static"  },
+        { url => qr|^/static/|, package => "Site::Pages::Static", test => \&Site::Pages::Static::can_send  },
         # misc methods
         { url => qr|^/ajaj/login$|,   package => "Site::Pages::AJAJ::Login"   },
         { url => qr|^/ajaj/getdata$|, package => "Site::Pages::AJAJ::Getdata", test => \&Site::Util::test_session },

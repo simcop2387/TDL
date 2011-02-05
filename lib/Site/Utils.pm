@@ -58,6 +58,4 @@ sub test_session {
     return 1;
 }
 
-
-
 1;
