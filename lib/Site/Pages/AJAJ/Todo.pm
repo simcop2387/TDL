@@ -11,9 +11,10 @@ sub new {
     if ( $con eq 'POST' ) {
         # Handle Post
         my $uid = unroll_session ( $req );
-        my $title = $req->param( 'title' );
-        my $id    = $req->param( 'id' ); # we trust the client to make a new id, but we'll send an error back if it doesn't work
-
+        my ($id, $title, $due, $list, $desc) =
+          get_params(qw/id title due list desc/);
+        #my $desc  = $req->param( 'desc' ); # not used yet
+        
     }
 
     return http_method_not_allowed( $res );
@@ -27,9 +28,8 @@ sub edit {
     if ( $con eq 'POST' ) {
         # Handle Post
         my $uid = unroll_session ( $req );
-        my $title = $req->param( 'title' );
-        my $id    = $req->param( 'id' );
-
+        my ($id, $title, $due, $list, $desc) =
+          get_params(qw/id title due list desc/);
     }
 
     return http_method_not_allowed( $res );
@@ -43,7 +43,7 @@ sub order {
     if ( $con eq 'POST' ) {
         # Handle Post
         my $uid = unroll_session ( $req );
-        my $id    = $req->param( 'order' );
+        my $order = $req->param( 'order' ); # we get a list of "todo_\d+"
 
     }
 
@@ -58,9 +58,8 @@ sub delete {
     if ( $con eq 'POST' ) {
         # Handle Post
         my $uid = unroll_session ( $req );
-        my $title = $req->param( 'title' );
         my $id    = $req->param( 'id' );
-
+        #
     }
 
     return http_method_not_allowed( $res );

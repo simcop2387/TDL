@@ -4,7 +4,7 @@ use Template;
 
 require Exporter;
 our @ISA = qw/ Exporter /;
-our @EXPORT = qw/ get_request_info get_template http_method_not_allowed /;
+our @EXPORT = qw/get_params get_request_info get_template http_method_not_allowed http_redirect test_session unroll_session/;
 
 
 my $template = Template->new(
@@ -29,6 +29,11 @@ sub get_request_info {
 
 sub get_template {
     return $template;
+}
+
+sub get_params {
+  my ($req, @params) = @_;
+  return map {$req->param($_)} @params;
 }
 
 ###### HTTP Request Helpers

@@ -13,7 +13,7 @@ sub new {
         my $uid = unroll_session ( $req );
         my $title = $req->param( 'title' );
         my $id    = $req->param( 'id' ); # we trust the client to make a new id, but we'll send an error back if it doesn't work
-          
+        
     }
     
     return http_method_not_allowed( $res );
