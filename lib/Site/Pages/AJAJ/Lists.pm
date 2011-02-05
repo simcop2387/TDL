@@ -10,10 +10,15 @@ sub new {
 
     if ( $con eq 'POST' ) {
         # Handle Post
-        my $title   = $req->param( 'title' );
-        my $content = $req->param( 'rawcontent' );
-        my $path    = $req->param( 'uri' );
-        
+        if (my $uid = get_session( $req )) { # do we have a valid uid/session?
+          my $title = $req->param( 'title' );
+          my $id    = $req->param( 'id' ); # we trust the client to make a new id, but we'll send an error back if it doesn't work
+          
+        } else {
+          # not a valid session, tell them it's a bad request and nothing more
+          $res->status(400);
+          return $res;
+        }
     }
     
     return http_method_not_allowed( $res );
@@ -26,10 +31,15 @@ sub edit {
 
     if ( $con eq 'POST' ) {
         # Handle Post
-        my $title   = $req->param( 'title' );
-        my $content = $req->param( 'rawcontent' );
-        my $path    = $req->param( 'uri' );
+        if (my $uid = get_session( $req )) { # do we have a valid uid/session?
+          my $title = $req->param( 'title' );
+          my $id    = $req->param( 'id' ); # we trust the client to make a new id, but we'll send an error back if it doesn't work
 
+        } else {
+          # not a valid session, tell them it's a bad request and nothing more
+          $res->status(400);
+          return $res;
+        }
     }
 
     return http_method_not_allowed( $res );
@@ -42,10 +52,15 @@ sub order {
 
     if ( $con eq 'POST' ) {
         # Handle Post
-        my $title   = $req->param( 'title' );
-        my $content = $req->param( 'rawcontent' );
-        my $path    = $req->param( 'uri' );
+        if (my $uid = get_session( $req )) { # do we have a valid uid/session?
+          my $title = $req->param( 'title' );
+          my $id    = $req->param( 'id' ); # we trust the client to make a new id, but we'll send an error back if it doesn't work
 
+        } else {
+          # not a valid session, tell them it's a bad request and nothing more
+          $res->status(400);
+          return $res;
+        }
     }
 
     return http_method_not_allowed( $res );
@@ -58,10 +73,15 @@ sub delete {
 
     if ( $con eq 'POST' ) {
         # Handle Post
-        my $title   = $req->param( 'title' );
-        my $content = $req->param( 'rawcontent' );
-        my $path    = $req->param( 'uri' );
+        if (my $uid = get_session( $req )) { # do we have a valid uid/session?
+          my $title = $req->param( 'title' );
+          my $id    = $req->param( 'id' ); # we trust the client to make a new id, but we'll send an error back if it doesn't work
 
+        } else {
+          # not a valid session, tell them it's a bad request and nothing more
+          $res->status(400);
+          return $res;
+        }
     }
 
     return http_method_not_allowed( $res );
