@@ -17,6 +17,8 @@ sub handle_GET {
     my $path = $self->req->path; # i'm going to filter it for this project
     $path =~ s|^/static||; # remove my /static, extra / doesn't matter
 
+    warn "TESTING: $path\n";
+
     $self->res->header( 'x-sendfile' => $self->config->{'paths'}->{'static_files'} . $path );
     return $self->res;
 }

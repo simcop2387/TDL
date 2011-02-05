@@ -19,11 +19,15 @@ sub handle_POST {
     my $key = make_session_key(); # get a new key, they aren't tied to the user or anything
 
     $self->res->body('{success: true}');
-    $self->cookies->{session} = $key; # should default to expire on browser close by default
-    $self->schema->resultset('Session')->find({uid=>$uid})
-      ->update({sessionkey=>$key,
-                expires=>\[q[NOW() + interval '1 hour']],
+    $self->res->cookies->{session} = $key; # should default to expire on browser close by default
+
+    if (my $r=$self->schema->resultset('Session')->search({uid => $uid})) {
+      $r->single->update({sessionkey=>$key,
+               expires=>\[q[NOW() + interval '1 hour']],
       });
+    } else {
+      $self->schema->resultset('Session')->insert({uid => $uid, sessionkey => $key, expires=>\[q[NOW() + interval '1 hour']]})
+    }
   } else {
     # TODO should I be using a JSON module for this kind of response? it's fixed
     $self->res->body('{success: false}');
@@ -37,6 +41,10 @@ my $chars = "0123456789ABCDEF";
 my $len = length($chars);
 sub make_session_key {
   local $_;
-  $_.=substr($chars, rand()*$len, 1) for (1..32);
-  return $_;
+  
+  for my $a (1..32) {
+    $_.=substr($chars, rand()*$len, 1)
+  }
+  
+    return $_;
 }

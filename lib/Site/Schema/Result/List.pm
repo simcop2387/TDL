@@ -8,7 +8,6 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("InflateColumn::DateTime");
 
 =head1 NAME
 
@@ -94,8 +93,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-04 20:39:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XwhnFCU3JaaQLka25SijNA
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-05 17:45:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Qil3TRQchJSa9TREjytDsQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

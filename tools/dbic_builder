@@ -48,7 +48,7 @@ print "Using conf=$config_file, out=$output.\n";
 make_schema_at("Site::Schema", 
     { 
         debug => 1, 
-        components => ["InflateColumn::DateTime"], 
+#        components => ["InflateColumn::DateTime"],  # i don't want this for this project, not yet anyway
         dump_directory => $output,
         naming => 'current',
     },  

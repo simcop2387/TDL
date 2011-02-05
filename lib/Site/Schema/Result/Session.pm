@@ -8,7 +8,6 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("InflateColumn::DateTime");
 
 =head1 NAME
 
@@ -29,7 +28,7 @@ __PACKAGE__->table("sessions");
 =head2 sessionkey
 
   data_type: 'text'
-  is_nullable: 0
+  is_nullable: 1
   original: {data_type => "varchar"}
 
 =head2 expires
@@ -46,7 +45,7 @@ __PACKAGE__->add_columns(
   "sessionkey",
   {
     data_type   => "text",
-    is_nullable => 0,
+    is_nullable => 1,
     original    => { data_type => "varchar" },
   },
   "expires",
@@ -77,8 +76,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-05 12:33:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Nnm2Ue0CTLc0UlwyBElLNw
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-05 17:45:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3iO9RlTnU+keTOu1GtqM0A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

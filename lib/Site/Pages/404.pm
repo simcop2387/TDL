@@ -8,7 +8,7 @@ sub handle_GET {
     $self->res->status(404);
     $self->res->headers({ 'Content-Type' => 'text/html', 'Refresh' => '1; URL=/' });
     $self->res->body( '<meta http-equiv="Refresh" content="1; URL=/"> Permanently relocated to /' );
-    return $self->self->res;
+    return $self->res;
 }
 
 1;

@@ -48,7 +48,7 @@ $Site::heap{'config'} = $config;
 
 my $app = Site::Dispatch->new(
     [
-        { url => qr|^/|,        package => "Site::Pages::Main" }, # main site, really just a version of static but without the filename
+        { url => qr|^/$|,        package => "Site::Pages::Main" }, # main site, really just a version of static but without the filename
         { url => qr|^/static/|, package => "Site::Pages::Static", test => \&Site::Pages::Static::can_send  },
         # misc methods
         { url => qr|^/ajaj/login$|,   package => "Site::Pages::AJAJ::Login"   },
@@ -66,7 +66,7 @@ my $app = Site::Dispatch->new(
         { url => qr|^/ajaj/todo/delete$|, package => "Site::Pages::AJAJ::Todo::Delete", test => \&Site::Util::test_session   },
 
         # this just redirects to / we don't have a real 404
-        { url => qr||,            package => "Site::Pages::404"  },
+        { url => qr|^/|,            package => "Site::Pages::404"  },
     ],
 );
 
