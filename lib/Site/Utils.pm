@@ -66,7 +66,8 @@ sub extend_session {
   my ( $uid )= @_;
   
   # this will only work in POSTGRES. i don't care about being agnostic right now.
-  $Site::heap{schema}->resultset('Session')->find({uid => $uid})->update({expires => \[qw[NOW() + interval '1 hour']]})
+  $Site::heap{schema}->resultset('Session')->find({uid => $uid})
+    ->update({expires => \[q[NOW() + interval '1 hour']]});
 }
 
 1;
