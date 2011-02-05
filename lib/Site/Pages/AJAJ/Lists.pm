@@ -28,7 +28,7 @@ sub edit {
         # Handle Post
         my $uid = unroll_session ( $req );
         my $title = $req->param( 'title' );
-        my $id    = $req->param( 'id' ); # we trust the client to make a new id, but we'll send an error back if it doesn't work
+        my $id    = $req->param( 'id' );
 
     }
 
@@ -43,8 +43,7 @@ sub order {
     if ( $con eq 'POST' ) {
         # Handle Post
         my $uid = unroll_session ( $req );
-        my $title = $req->param( 'title' );
-        my $id    = $req->param( 'id' ); # we trust the client to make a new id, but we'll send an error back if it doesn't work
+        my $id    = $req->param( 'order' );
 
     }
 
@@ -60,7 +59,7 @@ sub delete {
         # Handle Post
         my $uid = unroll_session ( $req );
         my $title = $req->param( 'title' );
-        my $id    = $req->param( 'id' ); # we trust the client to make a new id, but we'll send an error back if it doesn't work
+        my $id    = $req->param( 'id' );
 
     }
 
