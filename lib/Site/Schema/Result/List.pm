@@ -37,6 +37,11 @@ __PACKAGE__->table("lists");
   is_nullable: 0
   original: {data_type => "varchar"}
 
+=head2 order
+
+  data_type: 'integer'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -50,8 +55,11 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     original    => { data_type => "varchar" },
   },
+  "order",
+  { data_type => "integer", is_nullable => 0 },
 );
 __PACKAGE__->set_primary_key("uid", "lid");
+__PACKAGE__->add_unique_constraint("lists_uid_lid_order_key", ["uid", "lid", "order"]);
 
 =head1 RELATIONS
 
@@ -86,8 +94,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-04 19:03:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yRoUA5NZvmugDix0XmSmwA
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-04 20:39:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XwhnFCU3JaaQLka25SijNA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

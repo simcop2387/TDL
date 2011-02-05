@@ -54,6 +54,11 @@ __PACKAGE__->table("todos");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 order
+
+  data_type: 'integer'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -77,8 +82,11 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "lid",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "order",
+  { data_type => "integer", is_nullable => 0 },
 );
 __PACKAGE__->set_primary_key("uid", "tid");
+__PACKAGE__->add_unique_constraint("todos_uid_tid_lid_order_key", ["uid", "tid", "lid", "order"]);
 
 =head1 RELATIONS
 
@@ -113,8 +121,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-04 19:03:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:x1HXElgr04snkyYE/jNH+Q
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-04 20:39:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DMl0pQ3pVbQA685mYdjRCg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
