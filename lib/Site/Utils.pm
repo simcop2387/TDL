@@ -31,11 +31,6 @@ sub get_template {
     return $template;
 }
 
-sub get_params {
-  my ($req, @params) = @_;
-  return map {$req->param($_)} @params;
-}
-
 ###### HTTP Request Helpers
 
 sub http_method_not_allowed {
@@ -63,10 +58,6 @@ sub test_session {
     return 1;
 }
 
-sub unroll_session { # todo
-    my ( $req ) = @_;
 
-   return (0); # for now i'm going to return a single user.  without registration and everything else this is fine for testing
-}
 
 1;

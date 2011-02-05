@@ -23,4 +23,16 @@ sub render_page {
     return $res;
 }
 
+sub get_params {
+  my ($self, @params) = @_;
+  my $req=$self->req;
+  return map {$req->param($_)} @params;
+}
+
+sub unroll_session { # todo
+    my ( $self ) = @_;
+    
+    return (0); # for now i'm going to return a single user.  without registration and everything else this is fine for testing
+}
+
 1;
