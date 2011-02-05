@@ -95,6 +95,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 session
+
+Type: might_have
+
+Related object: L<Site::Schema::Result::Session>
+
+=cut
+
+__PACKAGE__->might_have(
+  "session",
+  "Site::Schema::Result::Session",
+  { "foreign.uid" => "self.uid" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 todos
 
 Type: has_many
@@ -111,8 +126,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-04 19:03:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vFdytmFUX9hmG1cEKAkhRg
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-05 12:33:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rAszGPWEiZT+TOydUe71GA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
