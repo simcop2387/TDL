@@ -39,24 +39,24 @@ $Site::heap{'config'} = $config;
 
 my $app = Site::Dispatch->new(
     [
-        { url => qr|^/|,        call => \&Site::Pages::Main::handle }, # main site
-        { url => qr|^/static/|, call => \&Site::Pages::Static::handle  },
+        { url => qr|^/|,        package => "Site::Pages::Main" }, # main site, really just a version of static but without the filename
+        { url => qr|^/static/|, package => "Site::Pages::Static"  },
         # misc methods
-        { url => qr|^/ajaj/login$|,   call => \&Site::Pages::Login::handle   },
-        { url => qr|^/ajaj/getdata$|, call => \&Site::Pages::AJAJ::getdata, test => \&Site::Util::test_session },
+        { url => qr|^/ajaj/login$|,   package => "Site::Pages::AJAJ::Login"   },
+        { url => qr|^/ajaj/getdata$|, package => "Site::Pages::AJAJ::Getdata", test => \&Site::Util::test_session },
         # list manipulation pages
-        { url => qr|^/ajaj/list/new$|,    call => \&Site::Pages::AJAJ::Lists::new,    test => \&Site::Util::test_session   },
-        { url => qr|^/ajaj/list/edit$|,   call => \&Site::Pages::AJAJ::Lists::edit,   test => \&Site::Util::test_session   },
-        { url => qr|^/ajaj/list/order$|,  call => \&Site::Pages::AJAJ::Lists::order,  test => \&Site::Util::test_session   },  # this is the order of the lists themselves, not the content
-        { url => qr|^/ajaj/list/delete$|, call => \&Site::Pages::AJAJ::Lists::delete, test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/list/new$|,    package => "Site::Pages::AJAJ::Lists::New",    test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/list/edit$|,   package => "Site::Pages::AJAJ::Lists::Edit",   test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/list/order$|,  package => "Site::Pages::AJAJ::Lists::Order",  test => \&Site::Util::test_session   },  # this is the order of the lists themselves, not the content
+        { url => qr|^/ajaj/list/delete$|, package => "Site::Pages::AJAJ::Lists::Delete", test => \&Site::Util::test_session   },
         # todo manipulation pages
-        { url => qr|^/ajaj/todo/new$|,    call => \&Site::Pages::AJAJ::Todo::new,    test => \&Site::Util::test_session   },
-        { url => qr|^/ajaj/todo/edit$|,   call => \&Site::Pages::AJAJ::Todo::edit,   test => \&Site::Util::test_session   },
-        { url => qr|^/ajaj/todo/order$|,  call => \&Site::Pages::AJAJ::Todo::order,  test => \&Site::Util::test_session   }, # this isn't REALLY an order on the todo, but the list the todo is on
-        { url => qr|^/ajaj/todo/delete$|, call => \&Site::Pages::AJAJ::Todo::delete, test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/todo/new$|,    package => "Site::Pages::AJAJ::Todo::New",    test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/todo/edit$|,   package => "Site::Pages::AJAJ::Todo::Edit",   test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/todo/order$|,  package => "Site::Pages::AJAJ::Todo::Order",  test => \&Site::Util::test_session   }, # this isn't REALLY an order on the todo, but the list the todo is on
+        { url => qr|^/ajaj/todo/delete$|, package => "Site::Pages::AJAJ::Todo::Delete", test => \&Site::Util::test_session   },
 
         # this just redirects to / we don't have a real 404
-        { url => qr||,            call => \&Site::Pages::404::handle  },
+        { url => qr||,            package => "Site::Pages::404"  },
     ],
 );
 
