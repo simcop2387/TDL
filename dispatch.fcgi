@@ -34,8 +34,24 @@ $Site::heap{'config'} = $config;
 
 my $app = Site::Dispatch->new(
     [
-        { url => qr|^/ajax/$|,   call => \&Site::Pages::AJAX::handle   },
-        { url => qr|^.*$|,       call => \&Site::Pages::Static::handle, test => \&Site::Pages::Static::can_send },
+        { url => qr|^/|, call => \&Site::Pages::Main::handle }, # main site
+        { url => qr|^/static/|, call => \&Site::Pages::Static::handle  },
+        # misc methods
+        { url => qr|^/ajaj/login$|,   call => \&Site::Pages::Login::handle   },
+        { url => qr|^/ajaj/getdata$|, call => \&Site::Pages::AJAJ::getdata   },
+        # list manipulation pages
+        { url => qr|^/ajaj/list/new$|, call => \&Site::Pages::AJAJ::Lists::new   },
+        { url => qr|^/ajaj/list/order$|, call => \&Site::Pages::AJAJ::Lists::order   },  # this is the order of the lists themselves, not the content
+        { url => qr|^/ajaj/list/delete$|, call => \&Site::Pages::AJAJ::Lists::delete   },
+        { url => qr|^/ajaj/list/edit$|, call => \&Site::Pages::AJAJ::Lists::delete   },
+        # todo manipulation pages
+        { url => qr|^/ajaj/todo/new$|, call => \&Site::Pages::AJAJ::Todo::new   },
+        { url => qr|^/ajaj/todo/edit$|, call => \&Site::Pages::AJAJ::Todo::edit   },
+        { url => qr|^/ajaj/todo/order$|, call => \&Site::Pages::AJAJ::Todo::order   }, # this isn't REALLY an order on the todo, but the list the todo is on
+        { url => qr|^/ajaj/todo/delete$|, call => \&Site::Pages::AJAJ::Todo::delete   },
+
+        # this just redirects to / we don't have a real 404
+        { url => qr||,            call => \&Site::Pages::404::handle  },
     ],
 );
 
