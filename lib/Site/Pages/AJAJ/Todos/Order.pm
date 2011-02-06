@@ -22,7 +22,7 @@ sub handle_POST {
     $self->schema->txn_do($coderef);
     return $self->json_success;
   } catch {
-    return $self->json_failure;
+    return $self->json_failure(message => "$_");
   }
 }
 

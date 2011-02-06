@@ -62,23 +62,24 @@ $(function() {
 
   function update_list(mylist) {
     /* update the order of a single list */
-    var id=mylist.id; // who are we checking?
-    var what=$("#tab_"+id+" li");
+    var lid=mylist.lid; // who are we checking?
+    var what=$("#tab_"+lid+" li");
     var arr = new Array();
 
+    var i=0;
     what.each(function() {
-      arr.push($(this).attr("id"));
-    });
-
-    /* now we have all the id's in the correct order */
-    console.log("UPDATE: ", mylist.id)
-    $.each(arr, function(i, v){
-      console.log("WTF: ",v);
-      if (v) // ignore stuff that has no id
-      items[v].order=i;
+      var id=$(this).attr("id");
+      console.log("ARG: ", $(this).attr("id"));
+      items[id].order=i++;
+      arr.push(items[id].tid);
     });
 
     /* send ajax post for mylist and arr */
+    post_to('/ajaj/todo/order', {todos: arr}, function(data) {
+      if (!data.success) {
+        console.log("ORDER ERROR: ", data.message);
+      }
+    }); // we're going to "silently" ignore errors here due to the fact that it only puts things out of sync and all data is still around
   }
 
   function change_list($item, listelem) {
@@ -325,7 +326,7 @@ $(function() {
   function _make_todo(myitem) {
     console.log($.toJSON(myitem));
     
-    items["todo_"+myitem.id]=myitem;
+    items["todo_"+myitem.tid]=myitem;
 
     var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
     var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+myitem.tid+

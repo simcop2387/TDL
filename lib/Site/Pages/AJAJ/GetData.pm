@@ -12,8 +12,8 @@ sub handler {
   
   my @lists;
   my @todos;
-  my $rs_todo = $self->schema->resultset('Todo')->search({uid => $uid});
-  my $rs_list = $self->schema->resultset('List')->search({uid => $uid});
+  my $rs_todo = $self->schema->resultset('Todo')->search({uid => $uid}, {order_by => "order"});
+  my $rs_list = $self->schema->resultset('List')->search({uid => $uid}, {order_by => "order"});
   
   while (my $row=$rs_list->next()) {
     push @lists, {$row->get_columns};
