@@ -1,7 +1,7 @@
 package Site::Pages::AJAJ::Logout;
 use strictures 1;
 
-use base qw/ Site::Pages /;
+use base qw/ Site::Pages::JSON /;
 
 sub handle_POST {
   my ( $self ) = @_;

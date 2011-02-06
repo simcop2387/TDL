@@ -1,7 +1,7 @@
 package Site::Pages::AJAJ::Login;
 use strictures 1;
 
-use base qw/ Site::Pages /;
+use base qw/ Site::Pages::JSON /;
 
 sub handle_POST {
   my ( $self ) = @_;
@@ -9,7 +9,7 @@ sub handle_POST {
   # TODO: change this system to be more secure
   # Ideally i'd like to use a challenge response instead but this will suffice for now
 
-  my $data = $self->get_json('data');
+  my $data = $self->get_json();
   my ($username, $passhash) = @{$data}{qw/username password/};
   
   if (my $row = $self->schema->resultset('User')

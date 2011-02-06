@@ -26,10 +26,10 @@ use Site::Pages::AJAJ::Todos::Order;
 use Site::Pages::AJAJ::Todos::Delete;
 
 use Site::Pages::AJAJ::Login;
+use Site::Pages::AJAJ::GetData;
+
 use Site::Pages::404;
-
 use Site::Pages::Main;
-
 use Site::Pages::Static;
 
 ####### Conf/DB Setup ########
@@ -53,7 +53,7 @@ my $app = Site::Dispatch->new(
         # misc methods
         { url => qr|^/ajaj/login$|,   package => "Site::Pages::AJAJ::Login"   },
         { url => qr|^/ajaj/login$|,   package => "Site::Pages::AJAJ::Logout",  test => \&Site::Util::test_session },
-        { url => qr|^/ajaj/getdata$|, package => "Site::Pages::AJAJ::Getdata", test => \&Site::Util::test_session },
+        { url => qr|^/ajaj/getdata$|, package => "Site::Pages::AJAJ::GetData", test => \&Site::Util::test_session },
         # list manipulation pages
         { url => qr|^/ajaj/list/new$|,    package => "Site::Pages::AJAJ::Lists::New",    test => \&Site::Util::test_session   },
         { url => qr|^/ajaj/list/edit$|,   package => "Site::Pages::AJAJ::Lists::Edit",   test => \&Site::Util::test_session   },
@@ -66,7 +66,7 @@ my $app = Site::Dispatch->new(
         { url => qr|^/ajaj/todo/delete$|, package => "Site::Pages::AJAJ::Todo::Delete", test => \&Site::Util::test_session   },
 
         # this just redirects to / we don't have a real 404
-        { url => qr|^/|,            package => "Site::Pages::404"  },
+        #{ url => qr|^/|,            package => "Site::Pages::404"  },
     ],
 );
 
