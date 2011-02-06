@@ -8,13 +8,13 @@ sub handle_POST {
   my ( $uid ) = $self->unroll_session();
   
   my $data = $self->get_json();
-  my ($id) = $data->{id};
+  my ($id) = $data->{tid};
   
   if (my $todo = $self->schema->resultset('Todo')->find({tid => $id})) {
     $todo->delete();
     return $self->json_success;
   } else {
-    return $self->json_failure;
+    return $self->json_failure(data => $data);
   }
 }
 

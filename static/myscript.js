@@ -62,6 +62,10 @@ $(function() {
 
   function update_list(mylist) {
     /* update the order of a single list */
+    if (mylist == null || mylist.lid == null) {
+      console.log("WHO ARE YOU?"); // why do i need this?
+      return; 
+    }
     var lid=mylist.lid; // who are we checking?
     var what=$("#tab_"+lid+" li");
     var arr = new Array();
@@ -86,15 +90,17 @@ $(function() {
     /* send new order of lists */
     /* listelem is the new list */
     var item = $item.attr("id");
+    var lid = lists[listelem].lid;
     var oldlist = items[item].lid;
 
-    items[item].lid = listelem; /* set the new list */
+    items[item].lid = lid; /* set the new list */
 
+    console.log(printStackTrace());
     // send item update, with new list
-    change_todo(items[item]);
+    change_todo(items[item], function() {}, function () {});
     // send order of old list and new list
     update_list(lists[oldlist]);
-    update_list(lists[listelem]);
+    //update_list(lists[listelem]);
   }
 
   function new_list(mylist, callback, errorback) {
@@ -107,10 +113,6 @@ $(function() {
                 errorback(data)
               }
             });
-  }
-
-  function edit_todo(id) {
-    /* edited the todo item */
   }
 
   function change_todo(myitem, callback, errorback) {
@@ -137,8 +139,9 @@ $(function() {
             });
   }
 
-  function delete_todo(myitem) {
+  function delete_todo(myitem, succeed) {
     /* delete a todo */
+    post_to('/ajaj/todo/delete', myitem, succeed); // TODO we don't need no stinking confirmation
   }
 
   function finish_login() {
@@ -283,7 +286,7 @@ $(function() {
         myitem.title=title;
         myitem.due = date;
 
-        edit_todo(myitem);
+        change_todo(myitem);
         dialog.dialog("close");
       }
     });
@@ -302,7 +305,7 @@ $(function() {
   }
 
   function post_to(url, data, success) {
-    $.post(url, {"data": $.toJSON(data)}, success, "json");
+    $.post(url, {"data": $.toJSON(data)}, function(data) {console.log("POSTOUT: ",$.toJSON(data));success(data)}, "json");
   }
 
   /**********************************************
@@ -331,7 +334,7 @@ $(function() {
     var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
     var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+myitem.tid+
                   '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span><span class="title">'+myitem.title+'</span>'+
-                  '<span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
+                  '<span class="pullright ui-icon ui-icon-close"></span><span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
 
     var check=$item.find(".ui-icon-circle-check");
     var finishme=function() {
@@ -365,6 +368,12 @@ $(function() {
     } else {
       check.click(finishme); 
     }
+
+    $item.find("span.ui-icon-close").click(function() {
+      delete_todo(myitem, function () {
+        $item.hide("slow", function () {$item.remove()})
+      });
+    });
 
     $item.find("span.ui-icon-wrench").click(function() {
       edit_todo_dialog(myitem);
