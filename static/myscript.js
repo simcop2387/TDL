@@ -112,8 +112,15 @@ $(function() {
     /* edited the todo item */
   }
 
-  function change_todo(myitem) {
+  function change_todo(myitem, callback, errorback) {
     /* send the todo finish or unfinish event */
+    post_to('/ajaj/todo/edit', myitem, function(data){
+      if (data.success) {
+        callback(data)
+      } else {
+        errorback(data)
+      }
+    });
   }
 
   function new_todo(mylist, callback, errorback) {
@@ -326,21 +333,28 @@ $(function() {
 
     var check=$item.find(".ui-icon-circle-check");
     var finishme=function() {
-      $item.removeClass("ui-state-default").addClass("ui-state-highlight");
       myitem.status=1;
 
       /* send updates */
-      change_todo(myitem);
-      check.click(unfinishme);
+      change_todo(myitem, function() {
+        $item.removeClass("ui-state-default").addClass("ui-state-highlight");
+        check.click(unfinishme);
+      },
+      function () {
+        myitem.status=0;
+      });
     };
 
     var unfinishme=function() {
-      $item.removeClass("ui-state-highlight").addClass("ui-state-default");
       myitem.status=0;
-
-      /* send updates */
-      change_todo(myitem);
-      check.click(finishme);
+      
+      change_todo(myitem, function() {
+        $item.removeClass("ui-state-highlight").addClass("ui-state-default");
+        check.click(finishme);
+      },
+      function () {
+        myitem.status=1;
+      });
     };
 
     check.click(finishme);

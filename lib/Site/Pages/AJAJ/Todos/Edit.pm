@@ -14,7 +14,7 @@ sub handle_POST {
   if (my $list=$self->schema->resultset('Todo')->find({uid => $uid, tid => $id})) {
     my $newhash;
     
-    for (qw/title due description lid/) { # only allow what we want
+    for (qw/title due description lid order/) { # only allow what we want
       $newhash->{$_} = $data->{$_} if exists($data->{$_});
     }
     $list->update($newhash);
