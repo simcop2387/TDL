@@ -17,3 +17,5 @@ body{ font-size: 75%; }/* background-image: url('back.png'); background-attachme
 .ui-tabs-vertical .ui-tabs-panel { padding: 1em; position: absolute; right: 1em; left: 20em;}
 .ui-tabs-vertical .ui-tabs-nav li .ui-icon-close { float: left; clear: none; margin: 0.4em 0.2em 0 0; cursor: pointer; }
 .ui-tabs-vertical .ui-tabs-nav li.ui-tabs-selected {margin-bottom: 0.2em; padding: 0;}
+.ui-dialog { margin:0 auto; }
+
