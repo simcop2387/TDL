@@ -116,8 +116,16 @@ $(function() {
     /* send the todo finish or unfinish event */
   }
 
-  function new_todo(myitem) {
-    /* send a new todo */
+  function new_todo(mylist, callback, errorback) {
+    /* send new todo */
+    post_to('/ajaj/todo/new', mylist,
+            function (data) {
+              if (data.success) {
+                callback(data)
+              } else {
+                errorback(data)
+              }
+            });
   }
 
   function delete_todo(myitem) {
