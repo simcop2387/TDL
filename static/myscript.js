@@ -115,6 +115,7 @@ $(function() {
   function change_todo(myitem, callback, errorback) {
     /* send the todo finish or unfinish event */
     post_to('/ajaj/todo/edit', myitem, function(data){
+      console.log($.toJSON(data));
       if (data.success) {
         callback(data)
       } else {
@@ -307,7 +308,7 @@ $(function() {
   * Creation functions                          *
   **********************************************/
   function make_todo(list, title, due) {
-    var myitem={title: title, tid: null, due: due, lid: list, status: 0, order: lists["tab_"+list].size++};
+    var myitem={title: title, tid: null, due: due, lid: list, finished: false, order: lists["tab_"+list].size++};
     
     // we need to fetch the ID! do this by creating it in the DB and getting it back
     new_todo(myitem,
@@ -333,7 +334,7 @@ $(function() {
 
     var check=$item.find(".ui-icon-circle-check");
     var finishme=function() {
-      myitem.status=1;
+      myitem.finished=true;
 
       /* send updates */
       change_todo(myitem, function() {
@@ -341,23 +342,28 @@ $(function() {
         check.click(unfinishme);
       },
       function () {
-        myitem.status=0;
+        myitem.finished=false;
       });
     };
 
     var unfinishme=function() {
-      myitem.status=0;
+      myitem.finished=true;
       
       change_todo(myitem, function() {
         $item.removeClass("ui-state-highlight").addClass("ui-state-default");
         check.click(finishme);
       },
       function () {
-        myitem.status=1;
+        myitem.finished=false;
       });
     };
 
-    check.click(finishme);
+    if (myitem.finished) {
+      $item.removeClass("ui-state-default").addClass("ui-state-highlight");
+      check.click(unfinishme);
+    } else {
+      check.click(finishme); 
+    }
 
     $item.find("span.ui-icon-wrench").click(function() {
       edit_todo_dialog(myitem);
