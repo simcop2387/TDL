@@ -57,7 +57,25 @@ $(function() {
   **********************************************/
 
   function update_lists(event, ui) {
-    /* update the order of the lists themselves */
+    /* send new order of lists */
+
+    var nav=$tabs.find(".ui-tabs-nav");
+    var what=nav.find('li a');
+
+    var arr = new Array();
+    var i=0;
+    what.each(function() {
+      var id=$(this).attr("href").substr(1);
+      console.log("ARG: ", id);
+      lists[id].order=i++;
+      arr.push(lists[id].lid);
+    });
+    
+    post_to('/ajaj/list/order', {lists: arr}, function(data) {
+      if (!data.success) {
+        console.log("ORDER ERROR: ", data.message);
+      }
+    });
   }
 
   function update_list(mylist) {
@@ -115,6 +133,11 @@ $(function() {
             });
   }
 
+  function delete_list(mylist, succeed) {
+    /* delete a todo */
+    post_to('/ajaj/list/delete', mylist, succeed); // TODO we don't need no stinking confirmation
+  }
+  
   function change_todo(myitem, callback, errorback) {
     /* send the todo finish or unfinish event */
     post_to('/ajaj/todo/edit', myitem, function(data){
@@ -190,7 +213,10 @@ $(function() {
       );
     };
     var registerfunc = function () {
-      alert("SHIT no registring yet");
+      if ($username.val() == '' || $password.val() == '') {
+        dialog.find('.error').show('slow');
+      };
+      
       dialog.find('.error').hide('slow');
       post_to("/ajaj/register",
               {"username": $username.val(), "password": $password.val()},
@@ -466,6 +492,11 @@ $(function() {
 
     $tabs.prepend(newtab);
     $tabs.tabs("add", "#tab_"+mylist.lid, mylist.title);
+    $tabs.find(".ui-icon-close", "#tab_"+mylist.lid).click(function () {
+      delete_list(mylist, function() {
+        $tabs.tabs("remove", mylist.order);
+      });
+    });
     setdroppable();
     $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
     $tabs.find(".ui-tabs-nav").sortable("refresh");
