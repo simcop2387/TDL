@@ -33,6 +33,10 @@ if(typeof(arr) == 'object') { //Array/Hashes/Objects
 return dumped_text;
 }
 
+if (console == null) {
+  var console = {log: function () {}};
+}
+
 $(function() {
   var $tabs=$("#tabs");
   var $_tab=$("#_tab");
