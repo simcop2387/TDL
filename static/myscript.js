@@ -45,7 +45,7 @@ $(function() {
   var lists=new Array();
   var items=new Array();
 
-  var lists_id=0, items_id=0;
+  var list_count=0;
 
   /****INIT ONLY FUNC*****/
   function set_ids(list, item) {
@@ -300,7 +300,7 @@ $(function() {
   * Creation functions                          *
   **********************************************/
   function make_todo(list, title, due) {
-    var myitem={title: title, tid: null, due: due, list: list, status: 0, order: lists["tab_"+list].size++};
+    var myitem={title: title, tid: null, due: due, lid: list, status: 0, order: lists["tab_"+list].size++};
     
     // we need to fetch the ID! do this by creating it in the DB and getting it back
     new_todo(myitem,
@@ -383,7 +383,7 @@ $(function() {
   }
 
   function make_list(title) {
-    var mylist={id: null, title: title, size: 0};
+    var mylist={id: null, title: title, size: 0, order: list_count};
 
     // we need to fetch the ID! do this by creating it in the DB and getting it back
     new_list(mylist,
@@ -398,7 +398,9 @@ $(function() {
   };
 
   function _make_list(mylist) {
+    list_count++; // increment this, used for naively ordering
     console.log($.toJSON(mylist));
+    mylist.size=0; // make sure the size exists, it'll always be 0
     lists["tab_"+mylist.lid]=mylist;
 
     var newtab=$_tab.clone();

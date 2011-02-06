@@ -40,6 +40,9 @@ my $schema = Site::Schema->connect(
     ";dbname=" . $config->{database}->{database}, 
     $config->{database}->{username}, 
     $config->{database}->{password},
+    {
+      quote_char => '"',
+    },
 );
 
 ####### Global Heap ########
@@ -60,10 +63,10 @@ my $app = Site::Dispatch->new(
         { url => qr|^/ajaj/list/order$|,  package => "Site::Pages::AJAJ::Lists::Order",  test => \&Site::Util::test_session   },  # this is the order of the lists themselves, not the content
         { url => qr|^/ajaj/list/delete$|, package => "Site::Pages::AJAJ::Lists::Delete", test => \&Site::Util::test_session   },
         # todo manipulation pages
-        { url => qr|^/ajaj/todo/new$|,    package => "Site::Pages::AJAJ::Todo::New",    test => \&Site::Util::test_session   },
-        { url => qr|^/ajaj/todo/edit$|,   package => "Site::Pages::AJAJ::Todo::Edit",   test => \&Site::Util::test_session   },
-        { url => qr|^/ajaj/todo/order$|,  package => "Site::Pages::AJAJ::Todo::Order",  test => \&Site::Util::test_session   }, # this isn't REALLY an order on the todo, but the list the todo is on
-        { url => qr|^/ajaj/todo/delete$|, package => "Site::Pages::AJAJ::Todo::Delete", test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/todo/new$|,    package => "Site::Pages::AJAJ::Todos::New",    test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/todo/edit$|,   package => "Site::Pages::AJAJ::Todos::Edit",   test => \&Site::Util::test_session   },
+        { url => qr|^/ajaj/todo/order$|,  package => "Site::Pages::AJAJ::Todos::Order",  test => \&Site::Util::test_session   }, # this isn't REALLY an order on the todo, but the list the todo is on
+        { url => qr|^/ajaj/todo/delete$|, package => "Site::Pages::AJAJ::Todos::Delete", test => \&Site::Util::test_session   },
 
         # this just redirects to / we don't have a real 404
         #{ url => qr|^/|,            package => "Site::Pages::404"  },

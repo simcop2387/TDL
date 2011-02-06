@@ -2,6 +2,8 @@ package Site::Pages::AJAJ::Todos::New;
 use strictures 1;
 
 use base qw/ Site::Pages::JSON /;
+use Data::Dumper;
+
 use Try::Tiny;
 
 sub handle_POST {
@@ -13,7 +15,7 @@ sub handle_POST {
   try {
     my $newhash;
 
-    for (qw/title due description order/) { # only allow what we want
+    for (qw/title due description order lid/) { # only allow what we want
       $newhash->{$_} = $data->{$_} if exists($data->{$_});
     }
     $newhash->{uid} = $uid;
@@ -22,7 +24,7 @@ sub handle_POST {
     my $tid = $row->get_column('tid');
     return $self->json_success(tid => "$tid", DD=>Dumper($tid));
   } catch {
-    return $self->json_failure(message => "$_");
+    return $self->json_failure(data=>$data, message => "$_");
   }
 }
 
