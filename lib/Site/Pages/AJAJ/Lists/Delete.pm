@@ -2,19 +2,20 @@ package Site::Pages::AJAJ::Lists::Delete;
 use strictures 1;
 
 use base qw/ Site::Pages::JSON /;
+use Try::Tiny;
 
 sub handle_POST {
   my ( $self ) = @_;
   my ( $uid ) = $self->unroll_session();
 
   my $data = $self->get_json();
-  my ($id) = $data->{id};
+  my ($lid) = $data->{lid};
 
-  if (my $list = $self->schema->resultset('List')->find({lid => $id})) {
-    $list->delete();
+  try {
+    $self->schema->resultset('List')->find({lid => $lid})->delete();
     return $self->json_success;
-  } else {
-    return $self->json_failure;
+  } catch {
+    return $self->json_failure(message => "$_");
   }
 }
 

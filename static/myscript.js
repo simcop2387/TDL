@@ -63,7 +63,7 @@ $(function() {
   function update_list(mylist) {
     /* update the order of a single list */
     if (mylist == null || mylist.lid == null) {
-      console.log("WHO ARE YOU?"); // why do i need this?
+      console.log("WHO ARE YOU?"); // why do i need this? something down below triggers an update that causes this to shit itself. fun
       return; 
     }
     var lid=mylist.lid; // who are we checking?
@@ -100,7 +100,7 @@ $(function() {
     change_todo(items[item], function() {}, function () {});
     // send order of old list and new list
     update_list(lists[oldlist]);
-    //update_list(lists[listelem]);
+    update_list(lists[listelem]);
   }
 
   function new_list(mylist, callback, errorback) {
@@ -177,8 +177,8 @@ $(function() {
 
     var loginfunc = function () {
       dialog.find('.error').hide("slow");
-      $.post("/ajaj/login",
-            {data: $.toJSON({"username": $username.val(), "password": $password.val()})},
+      post_to("/ajaj/login",
+            {"username": $username.val(), "password": $password.val()},
             function (data) {
               if (data.success) {
                 loggedin=1;
@@ -186,11 +186,24 @@ $(function() {
               } else {
                 dialog.find('.error').show("slow");
               }
-            },
-            "json"
+            }
       );
     };
-    var registerfunc = function () {alert("SHIT no registring yet")};
+    var registerfunc = function () {
+      alert("SHIT no registring yet");
+      dialog.find('.error').hide('slow');
+      post_to("/ajaj/register",
+              {"username": $username.val(), "password": $password.val()},
+              function (data) {
+                if (data.success) {
+                  loggedin=1;
+                  dialog.dialog("close"); finish_login()
+                } else {
+                  dialog.find('.error').show("slow");
+                }                
+              }
+      );
+    };
     
     dialog.dialog({
       close: function() {if (loggedin) dialog.remove(); else login_dialog()},

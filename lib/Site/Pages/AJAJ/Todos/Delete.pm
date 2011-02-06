@@ -2,19 +2,20 @@ package Site::Pages::AJAJ::Todos::Delete;
 use strictures 1;
 
 use base qw/ Site::Pages::JSON /;
+use Try::Tiny;
 
 sub handle_POST {
   my ( $self ) = @_;
   my ( $uid ) = $self->unroll_session();
   
   my $data = $self->get_json();
-  my ($id) = $data->{tid};
+  my ($tid) = $data->{tid};
   
-  if (my $todo = $self->schema->resultset('Todo')->find({tid => $id})) {
-    $todo->delete();
+  try {
+    $self->schema->resultset('Todo')->find({tid => $tid})->delete();
     return $self->json_success;
-  } else {
-    return $self->json_failure(data => $data);
+  } catch {
+    return $self->json_failure(message => "$_");
   }
 }
 

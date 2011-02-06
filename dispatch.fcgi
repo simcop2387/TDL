@@ -27,6 +27,7 @@ use Site::Pages::AJAJ::Todos::Delete;
 
 use Site::Pages::AJAJ::Login;
 use Site::Pages::AJAJ::GetData;
+use Site::Pages::AJAJ::Register;
 
 use Site::Pages::404;
 use Site::Pages::Main;
@@ -55,8 +56,9 @@ my $app = Site::Dispatch->new(
         { url => qr|^/static/|, package => "Site::Pages::Static", test => \&Site::Pages::Static::can_send  },
         # misc methods
         { url => qr|^/ajaj/login$|,   package => "Site::Pages::AJAJ::Login"   },
-        { url => qr|^/ajaj/login$|,   package => "Site::Pages::AJAJ::Logout",  test => \&Site::Util::test_session },
+        { url => qr|^/ajaj/logout$|,  package => "Site::Pages::AJAJ::Logout",  test => \&Site::Util::test_session },
         { url => qr|^/ajaj/getdata$|, package => "Site::Pages::AJAJ::GetData", test => \&Site::Util::test_session },
+        { url => qr|^/ajaj/register$|,package => "Site::Pages::AJAJ::Register" },
         # list manipulation pages
         { url => qr|^/ajaj/list/new$|,    package => "Site::Pages::AJAJ::Lists::New",    test => \&Site::Util::test_session   },
         { url => qr|^/ajaj/list/edit$|,   package => "Site::Pages::AJAJ::Lists::Edit",   test => \&Site::Util::test_session   },
