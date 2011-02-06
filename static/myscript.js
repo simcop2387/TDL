@@ -97,6 +97,7 @@ $(function() {
 
   function new_list(mylist) {
     /* send new list */
+    post_to('/ajaj/list/new', mylist); // i assume success here for now
   }
 
   function edit_todo(id) {
@@ -119,9 +120,14 @@ $(function() {
     if (data.success) {
       /* login successful! omg!*/
       alert("login success");
+      make_listbutt();
     } else {
       login_dialog();
     }
+  }
+
+  function get_data() {
+    $.post()
   }
   /*****************************************************
   * UI callbacks - doesn't send updates, just ui stuff *
@@ -135,28 +141,20 @@ $(function() {
     var $username = dialog.find(".username");
     var $password = dialog.find(".password"); // TODO fix this before actually using, passwords sent in clear! SSL fixes this, as does hashing
 
+    var loginfunc = function () {
+      $.post("/ajaj/login",
+             {data: $.toJSON({"username": $username.val(), "password": $password.val()})},
+             function () {dialog.remove(); finish_login()},
+             "json"
+      );
+    };
+    var registerfunc = function () {alert("SHIT no registring yet")};
+    
     dialog.dialog({
-      close: function() {
-        dialog.remove(); // i like cleaning up the dom
-      },
+      close: function() {dialog.remove();},
       modal: true,
-      buttons: [
-        {
-          text: "Login",
-          click: function () {
-            dialog.remove();
-            $.post("/ajaj/login",
-              {data: $.toJSON({"username": $username.val(), "password": $password.val()})},
-              finish_login,
-              "json"
-            );
-          }
-        },
-        {
-          text: "Register",
-          click: function () {alert("SHIT no registring yet")}
-        }
-      ]
+      buttons: [{ text: "Login", click: loginfunc },
+                { text: "Register", click: registerfunc },],
     });
   }
 
@@ -264,6 +262,10 @@ $(function() {
     /*add more checks later*/
 
     return true;
+  }
+
+  function post_to(url, data, success) {
+    $.post(url, {"data": $.toJSON(data)}, success, "json");
   }
 
   /**********************************************
@@ -382,6 +384,5 @@ $(function() {
 
   $tabs.removeClass('ui-widget-content');
 
-  make_listbutt();
   login_dialog();
 });
