@@ -19,7 +19,7 @@ sub handle_POST {
     }
     $newhash->{tid} = $id; # carry the id over
 
-    $self->schema->resultset('List')->create($newhash);
+    $self->schema->resultset('Todo')->create($newhash);
 
     return $self->json_success;
   } else {

@@ -39,6 +39,7 @@ $(function() {
   var $hidden=$("#hidden");
   var $_add_dialog=$("#_add_todo");
   var $_edit_dialog=$("#_edit_todo");
+  var $_add_list_dialog=$("#_add_list");
   var $_login_dialog=$("#_login");
   
   var lists=new Array();
@@ -62,7 +63,7 @@ $(function() {
   function update_list(mylist) {
     /* update the order of a single list */
     var id=mylist.id; // who are we checking?
-    var what=$("#"+id+" li");
+    var what=$("#tab_"+id+" li");
     var arr = new Array();
 
     what.each(function() {
@@ -95,9 +96,16 @@ $(function() {
     update_list(lists[listelem]);
   }
 
-  function new_list(mylist) {
+  function new_list(mylist, callback, errorback) {
     /* send new list */
-    post_to('/ajaj/list/new', mylist); // i assume success here for now
+    post_to('/ajaj/list/new', mylist,
+            function (data) {
+              if (data.success) {
+                callback(data)
+              } else {
+                errorback(data)
+              }
+            });
   }
 
   function edit_todo(id) {
@@ -116,18 +124,16 @@ $(function() {
     /* delete a todo */
   }
 
-  function finish_login(data, status, xmlhttp) {
-    if (data.success) {
-      /* login successful! omg!*/
-      alert("login success");
-      make_listbutt();
-    } else {
-      login_dialog();
-    }
+  function finish_login() {
+    alert("login success");
+    make_listbutt();
+    get_data();
   }
 
   function get_data() {
-    $.post()
+    post_to('/ajaj/getdata', {}, function (data) {
+      console.log($.toJSON(data))
+    });
   }
   /*****************************************************
   * UI callbacks - doesn't send updates, just ui stuff *
@@ -136,54 +142,63 @@ $(function() {
   function login_dialog() {
     var dialog = $_login_dialog.clone();
     dialog.attr("id", null); // clear the id
+    var loggedin=0; // used to prevent the user from just closing the box because i can't get the damned thing to remove the X
     $("body").append(dialog);
 
     var $username = dialog.find(".username");
     var $password = dialog.find(".password"); // TODO fix this before actually using, passwords sent in clear! SSL fixes this, as does hashing
 
     var loginfunc = function () {
+      dialog.find('.error').hide("slow");
       $.post("/ajaj/login",
-             {data: $.toJSON({"username": $username.val(), "password": $password.val()})},
-             function () {dialog.remove(); finish_login()},
-             "json"
+            {data: $.toJSON({"username": $username.val(), "password": $password.val()})},
+            function (data) {
+              if (data.success) {
+                loggedin=1;
+                dialog.dialog("close"); finish_login()
+              } else {
+                dialog.find('.error').show("slow");
+              }
+            },
+            "json"
       );
     };
     var registerfunc = function () {alert("SHIT no registring yet")};
     
     dialog.dialog({
-      close: function() {dialog.remove();},
+      close: function() {if (loggedin) dialog.remove(); else login_dialog()},
       modal: true,
       buttons: [{ text: "Login", click: loginfunc },
                 { text: "Register", click: registerfunc },],
+      title: "Please login or register",
     });
   }
 
   function add_list_dialog() {
-    var dialog = $_add_dialog.clone();
+    var dialog = $_add_list_dialog.clone();
     dialog.attr("id", null); // clear the id
     $("body").append(dialog);
+
+    var savelist = function () {
+      var title = dialog.find(".title").val();
+
+      if (!checktitle(title)) {
+        dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+      } else {
+        make_list(title);
+        dialog.dialog("close");
+      }
+    }
+
     dialog.dialog({
       close: function() {
         dialog.remove();
       },
+      buttons: [
+        {text: "Add List", click: savelist},
+        {text: "Cancel", click: function () {dialog.remove()}}
+      ],
     });
-    
-    dialog.find(".datepicker").datepicker();
-    
-    dialog.find("._savechanges").click(function() {
-      var title = dialog.find(".title").val();
-      var date = dialog.find(".datepicker").val();
-      
-      if (!checktitle(title)) {
-        dialog.find(".title").animate({backgroundColor: "red"}, 1000);
-      } else {
-        make_todo(list.id, title, date);
-        dialog.dialog("close");
-      }
-    });
-    
-    dialog.find("._cancel").click(function(){dialog.dialog("close")});
-    
   }
   
   function add_todo_dialog(list) {
@@ -274,11 +289,11 @@ $(function() {
 
   function make_todo(list, title, due) {
     var id=items_id++;
-    var myitem={title: title, id: id, due: due, list: list, status: 0, order: lists[list].size++};
+    var myitem={title: title, id: id, due: due, list: list, status: 0, order: lists["tab_"+list].size++};
 
     items["todo_"+id]=myitem;
 
-    var $sortlist=$(".connectedSortable", "#" + list);
+    var $sortlist=$(".connectedSortable", "#tab_" + list);
     var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+id+
                   '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span><span class="title">'+title+'</span>'+
                   '<span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
@@ -340,18 +355,33 @@ $(function() {
     $tabs.find('ul.ui-tabs-nav button').remove();
     $tabs.find('ul.ui-tabs-nav').append(butt);
     // insert code here about butts
+    butt.button();
     butt.click(function () {add_list_dialog()})
   }
 
   function make_list(title) {
-    var id=lists_id++; /*which number are we now*/
-    var mylist={id: "tab_"+id, title: title, size: 0};
-    lists["tab_"+id]=mylist;
+    var mylist={id: null, title: title, size: 0};
+
+    // we need to fetch the ID! do this by creating it in the DB and getting it back
+    new_list(mylist,
+      function (data) {
+        console.log($.toJSON(data));
+        mylist.id = data.lid;
+        _make_list(mylist);
+      },
+      function (data) {
+        console.log($.toJSON(data));
+    });
+  };
+
+  function _make_list(mylist) {
+    
+    lists["tab_"+mylist.id]=mylist;
 
     var newtab=$_tab.clone();
     var sortable=newtab.find("ul");
 
-    newtab.attr("id","tab_"+id);
+    newtab.attr("id","tab_"+mylist.id);
     newtab.find('.additem').button().click(function(){
       /* they asked to make a new item! */
       add_todo_dialog(mylist);
@@ -367,14 +397,11 @@ $(function() {
     sortable.disableSelection();
 
     $tabs.prepend(newtab);
-    $tabs.tabs("add", "#tab_"+id, title);
+    $tabs.tabs("add", "#tab_"+mylist.id, mylist.title);
     setdroppable();
     $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
     $tabs.find(".ui-tabs-nav").sortable("refresh");
     make_listbutt();
-
-    /* send new list */
-    new_list(mylist);
   }
   
   /* init code */

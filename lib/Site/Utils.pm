@@ -55,7 +55,7 @@ sub test_session {
     my ( $req ) = @_;
     my ( $res, $con, $uri ) = get_request_info( $req );
 
-    # todo check the session
+    # TODO check the session
 
     #return 0 if $uri =~ /\.\./;
     return 1;

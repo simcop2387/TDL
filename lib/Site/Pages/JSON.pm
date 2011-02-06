@@ -6,8 +6,11 @@ use base qw/ Site::Pages /;
 
 use JSON::XS;
 
-my $json_success = encode_json {success => JSON::XS::true};
-my $json_failure = encode_json {success => JSON::XS::false};
+my %js_succ = (success => JSON::XS::true);
+my %js_fail = (success => JSON::XS::true);
+
+my $json_success = encode_json \%js_succ;
+my $json_failure = encode_json \%js_fail;
 
 sub get_json {
   my ($self) = @_;
@@ -16,16 +19,24 @@ sub get_json {
 }
 
 sub json_success {
-  my ( $self ) = @_;
-  $self->res->headers({'Content-Type' => 'application/json'});
-  $self->res->body($json_success);
+  my ( $self, %data ) = @_;
+
+  $self->res->headers({'Content-Type' => 'application/json', 'X-DATA' => encode_json(\%data)});
+  $self->res->body(encode_json {%js_succ, iwenttherightway=>1, %data});
+  
   return $self->res;
 }
 
 sub json_failure {
-  my ( $self ) = @_;
-  $self->res->headers({'Content-Type' => 'application/json'});
-  $self->res->body($json_failure);
+  my ( $self, %data ) = @_;
+
+  $self->res->headers({'Content-Type' => 'application/json', 'X-DATA' => encode_json(\%data)});
+  if (%data) {
+    $self->res->body(encode_json {%js_fail, iwenttherightway=>1, %data});
+  } else {
+    $self->res->body($json_failure);
+  }
+  
   return $self->res;
 }
 
