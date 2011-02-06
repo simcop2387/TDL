@@ -85,9 +85,9 @@ $(function() {
     /* send new order of lists */
     /* listelem is the new list */
     var item = $item.attr("id");
-    var oldlist = items[item].list;
+    var oldlist = items[item].lid;
 
-    items[item].list = listelem; /* set the new list */
+    items[item].lid = listelem; /* set the new list */
 
     // send item update, with new list
     change_todo(items[item]);
@@ -146,7 +146,7 @@ $(function() {
         _make_list(data.lists[i]);
       }
       for (var i in data.todos) {
-        //_make_todo(data.todos[i]);
+        _make_todo(data.todos[i]);
       }
     });
   }
@@ -315,9 +315,11 @@ $(function() {
   };
   
   function _make_todo(myitem) {
+    console.log($.toJSON(myitem));
+    
     items["todo_"+myitem.id]=myitem;
 
-    var $sortlist=$(".connectedSortable", "#tab_" + myitem.list);
+    var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
     var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+myitem.tid+
                   '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span><span class="title">'+myitem.title+'</span>'+
                   '<span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');

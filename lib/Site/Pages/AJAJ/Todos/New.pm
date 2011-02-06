@@ -2,28 +2,27 @@ package Site::Pages::AJAJ::Todos::New;
 use strictures 1;
 
 use base qw/ Site::Pages::JSON /;
+use Try::Tiny;
 
 sub handle_POST {
   my ( $self ) = @_;
   
   my ( $uid ) = $self->unroll_session();
   my $data = $self->get_json();
-  my $id = $data->{id};
 
-  # failure if we do have one
-  unless ($self->schema->resultset('Todo')->find({uid => $uid, lid => $id})) {
+  try {
     my $newhash;
 
-    for (qw/title due description/) { # only allow what we want
+    for (qw/title due description order/) { # only allow what we want
       $newhash->{$_} = $data->{$_} if exists($data->{$_});
     }
-    $newhash->{tid} = $id; # carry the id over
+    $newhash->{uid} = $uid;
 
-    $self->schema->resultset('Todo')->create($newhash);
-
-    return $self->json_success;
-  } else {
-    return $self->json_failure;
+    my $row = $self->schema->resultset('Todo')->create($newhash);
+    my $tid = $row->get_column('tid');
+    return $self->json_success(tid => "$tid", DD=>Dumper($tid));
+  } catch {
+    return $self->json_failure(message => "$_");
   }
 }
 

@@ -25,11 +25,6 @@ __PACKAGE__->table("lists");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 lid
-
-  data_type: 'integer'
-  is_nullable: 0
-
 =head2 title
 
   data_type: 'text'
@@ -41,13 +36,18 @@ __PACKAGE__->table("lists");
   data_type: 'integer'
   is_nullable: 0
 
+=head2 lid
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'lists_lid_seq'
+
 =cut
 
 __PACKAGE__->add_columns(
   "uid",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "lid",
-  { data_type => "integer", is_nullable => 0 },
   "title",
   {
     data_type   => "text",
@@ -56,9 +56,15 @@ __PACKAGE__->add_columns(
   },
   "order",
   { data_type => "integer", is_nullable => 0 },
+  "lid",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "lists_lid_seq",
+  },
 );
-__PACKAGE__->set_primary_key("uid", "lid");
-__PACKAGE__->add_unique_constraint("lists_uid_lid_order_key", ["uid", "lid", "order"]);
+__PACKAGE__->set_primary_key("lid");
 
 =head1 RELATIONS
 
@@ -88,13 +94,13 @@ Related object: L<Site::Schema::Result::Todo>
 __PACKAGE__->has_many(
   "todos",
   "Site::Schema::Result::Todo",
-  { "foreign.lid" => "self.lid", "foreign.uid" => "self.uid" },
+  { "foreign.lid" => "self.lid" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-05 17:45:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Qil3TRQchJSa9TREjytDsQ
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-06 13:50:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ICHPdpvETGEvxzLs64bAqQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

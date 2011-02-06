@@ -25,11 +25,6 @@ __PACKAGE__->table("todos");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 tid
-
-  data_type: 'integer'
-  is_nullable: 0
-
 =head2 title
 
   data_type: 'text'
@@ -64,13 +59,18 @@ __PACKAGE__->table("todos");
   default_value: false
   is_nullable: 0
 
+=head2 tid
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'todos_tid_seq'
+
 =cut
 
 __PACKAGE__->add_columns(
   "uid",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "tid",
-  { data_type => "integer", is_nullable => 0 },
   "title",
   {
     data_type   => "text",
@@ -91,12 +91,19 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 0 },
   "finished",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "tid",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "todos_tid_seq",
+  },
 );
-__PACKAGE__->set_primary_key("uid", "tid");
+__PACKAGE__->set_primary_key("tid");
 
 =head1 RELATIONS
 
-=head2 list
+=head2 lid
 
 Type: belongs_to
 
@@ -105,9 +112,9 @@ Related object: L<Site::Schema::Result::List>
 =cut
 
 __PACKAGE__->belongs_to(
-  "list",
+  "lid",
   "Site::Schema::Result::List",
-  { lid => "lid", uid => "uid" },
+  { lid => "lid" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -127,8 +134,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-05 20:56:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:K24dVmP8zP28fW4pLtpUcw
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-06 13:47:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cv51jAUwRD+Mgx+ynlmVDA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
