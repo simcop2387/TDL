@@ -1,0 +1,52 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+
+use lib 'lib';
+use lib '../lib'; # In case people run it inside of /tools/
+
+####### Internal Libs ########
+use Site::Config;     # YAML + Conf Validator
+
+# Configutation
+my ( $config_file ) = ( undef );
+
+while ( my $opt = shift @ARGV  ) {
+    if ( $opt eq '-c' ) {
+        $config_file = shift;
+    } else {
+        help();
+    }
+}
+
+sub help {
+    print "NATS - Not A Tool Kit 1.0\n";
+    print "\t|*| $0 |*|\n\n";
+    print "This tool assists in the deployment of the database.\n";
+    print "It is indended to be run to make changes to the PSQL DB.\n";
+    print "\n";
+    print "* Options *\n";
+    print "-c [config file]     || The site's config file\n";
+    print "   Required | Default: None\n\n";
+    exit -1;
+}
+
+
+######## Main Application ########
+
+help unless $config_file;
+
+my $config = Site::Config->load_config( $config_file );
+print "Using conf=$config_file\n";
+
+use Site::Schema;   # DBIC
+my $schema = Site::Schema->connect(
+  "dbi:Pg:host=" . $config->{database}->{hostname} .
+      ";dbname=" . $config->{database}->{database},
+      $config->{database}->{username},
+      $config->{database}->{password},
+      {
+        quote_char => '"',
+      },
+);
+$schema->deploy();
