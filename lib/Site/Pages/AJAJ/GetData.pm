@@ -32,6 +32,7 @@ sub handler {
   return $self->res;
 }
 
+# handle both so it's easier to debug on the CLI
 sub handle_GET {
   goto &handler;
 }

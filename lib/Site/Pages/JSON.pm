@@ -11,6 +11,7 @@ my $json_failure = encode_json {success => JSON::XS::false};
 
 sub get_json {
   my ($self) = @_;
+  print STDERR "DEBUG GET_JSON: ".$self->req->param('data');
   return decode_json $self->req->param('data');
 }
 

@@ -39,6 +39,7 @@ $(function() {
   var $hidden=$("#hidden");
   var $_add_dialog=$("#_add_todo");
   var $_edit_dialog=$("#_edit_todo");
+  var $_login_dialog=$("#_login");
   
   var lists=new Array();
   var items=new Array();
@@ -114,10 +115,79 @@ $(function() {
     /* delete a todo */
   }
 
+  function finish_login(data, status, xmlhttp) {
+    if (data.success) {
+      /* login successful! omg!*/
+      alert("login success");
+    } else {
+      login_dialog();
+    }
+  }
   /*****************************************************
   * UI callbacks - doesn't send updates, just ui stuff *
   *****************************************************/
 
+  function login_dialog() {
+    var dialog = $_login_dialog.clone();
+    dialog.attr("id", null); // clear the id
+    $("body").append(dialog);
+
+    var $username = dialog.find(".username");
+    var $password = dialog.find(".password"); // TODO fix this before actually using, passwords sent in clear! SSL fixes this, as does hashing
+
+    dialog.dialog({
+      close: function() {
+        dialog.remove(); // i like cleaning up the dom
+      },
+      modal: true,
+      buttons: [
+        {
+          text: "Login",
+          click: function () {
+            dialog.remove();
+            $.post("/ajaj/login",
+              {data: $.toJSON({"username": $username.val(), "password": $password.val()})},
+              finish_login,
+              "json"
+            );
+          }
+        },
+        {
+          text: "Register",
+          click: function () {alert("SHIT no registring yet")}
+        }
+      ]
+    });
+  }
+
+  function add_list_dialog() {
+    var dialog = $_add_dialog.clone();
+    dialog.attr("id", null); // clear the id
+    $("body").append(dialog);
+    dialog.dialog({
+      close: function() {
+        dialog.remove();
+      },
+    });
+    
+    dialog.find(".datepicker").datepicker();
+    
+    dialog.find("._savechanges").click(function() {
+      var title = dialog.find(".title").val();
+      var date = dialog.find(".datepicker").val();
+      
+      if (!checktitle(title)) {
+        dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+      } else {
+        make_todo(list.id, title, date);
+        dialog.dialog("close");
+      }
+    });
+    
+    dialog.find("._cancel").click(function(){dialog.dialog("close")});
+    
+  }
+  
   function add_todo_dialog(list) {
     var dialog = $_add_dialog.clone();
 
@@ -264,8 +334,11 @@ $(function() {
   }
 
   function make_listbutt() {
+    var butt = $("<button class='addlist'>Add new list</button>");
     $tabs.find('ul.ui-tabs-nav button').remove();
-    $tabs.find('ul.ui-tabs-nav').append("<button class='addlist'>Add new list</button>");
+    $tabs.find('ul.ui-tabs-nav').append(butt);
+    // insert code here about butts
+    butt.click(function () {add_list_dialog()})
   }
 
   function make_list(title) {
@@ -310,10 +383,5 @@ $(function() {
   $tabs.removeClass('ui-widget-content');
 
   make_listbutt();
-
-  /* generate a few things for testing */
-  make_list("Testing");
-  make_list("Testing2");
-  make_list("Testing3");
-  make_list("Testing4");
+  login_dialog();
 });
