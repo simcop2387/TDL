@@ -1,14 +1,13 @@
 package Site::Pages::AJAJ::Lists::Edit;
 use strictures 1;
 
-use base qw/ Site::Pages /;
-use Site::Utils;
+use base qw/ Site::Pages::JSON /;
 
 sub handle_POST {
   my ( $self ) = @_;
   my ( $uid ) = $self->unroll_session();
   
-  my $data = $self->get_json('data');
+  my $data = $self->get_json();
   my $id = $data->{id};
 
   if (my $list=$self->schema->resultset('List')->find({uid => $uid, lid => $id})) {
@@ -19,13 +18,10 @@ sub handle_POST {
     }
     $list->update($newhash);
 
-    $self->res->body('{success: true}');
+    return $self->json_success;
   } else {
-    $self->res->body('{success: false}');
+    return $self->json_failure;
   }
-
-  $self->res->headers({'Content-Type' => 'application/json'});
-  return $self->res;
 }
 
 1;

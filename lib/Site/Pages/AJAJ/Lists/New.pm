@@ -1,8 +1,7 @@
 package Site::Pages::AJAJ::Lists::New;
 use strictures 1;
 
-use base qw/ Site::Pages /;
-use Site::Utils;
+use base qw/ Site::Pages::JSON /;
 
 # TODO make this send back the new ID and have use make a new one, this will enable multiple sessions for a user later
 
@@ -10,7 +9,7 @@ sub handle_POST {
   my ( $self ) = @_;
   
   my ( $uid ) = $self->unroll_session();
-  my $data = $self->get_json('data');
+  my $data = $self->get_json();
   my $id = $data->{id};
 
   # failure if we do have one
@@ -24,13 +23,10 @@ sub handle_POST {
 
     $self->schema->resultset('List')->create($newhash);
 
-    $self->res->body('{success: true}');
+    return $self->json_success;
   } else {
-    $self->res->body('{success: false}');
+    return $self->json_failure;
   }
-
-  $self->res->headers({'Content-Type' => 'application/json'});
-  return $self->res;
 }
 
 1;

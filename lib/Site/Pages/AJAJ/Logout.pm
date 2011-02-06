@@ -8,8 +8,10 @@ sub handle_POST {
   my ( $uid ) = $self->unroll_session();
 
   # just remove the key from the session DB
-  $self->schema->resultset('Session')->find({uid=>$uid})->delete();
-
-  $self->res->headers({'Content-Type' => 'application/json'});
-  $self->res->body('{success: true}');
+  if (my $session = $self->schema->resultset('Session')->find({uid=>$uid})) {
+    $session->delete();
+    return $self->json_success;
+  } else {
+    return $self->json_failure;
+  }
 }

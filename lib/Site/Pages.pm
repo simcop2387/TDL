@@ -3,8 +3,6 @@ use strictures 1;
 use Site::Utils;
 use Moo;
 
-use JSON::XS;
-
 has config => ( is => 'ro' );
 has schema => ( is => 'ro' );
 has req => ( is => 'rw' );
@@ -31,16 +29,10 @@ sub get_params {
   return map {$req->param($_)} @params;
 }
 
-sub get_json {
-  my ($self, $param) = @_;
-
-  return decode_json $self->req->param($param);
-}
-
-sub unroll_session { # todo
+sub unroll_session {
     my ( $self ) = @_;
-    
-    return (0); # for now i'm going to return a single user.  without registration and everything else this is fine for testing
+    my $key = $self->req->cookies->{session};
+    return $self->schema->resultset('Session')->find({sessionkey=>$key})->get_column('uid')
 }
 
 1;

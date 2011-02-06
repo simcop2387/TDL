@@ -11,4 +11,13 @@ sub handle_GET {
     return $self->res;
 }
 
+sub handle_POST {
+  my ( $self ) = @_;
+  
+  $self->res->status(404);
+  $self->res->headers({ 'Content-Type' => 'text/html', 'Refresh' => '1; URL=/' });
+  $self->res->body( '<meta http-equiv="Refresh" content="1; URL=/"> Permanently relocated to /' );
+  return $self->res;
+}
+
 1;
