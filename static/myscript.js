@@ -125,14 +125,21 @@ $(function() {
   }
 
   function finish_login() {
-    alert("login success");
     make_listbutt();
     get_data();
   }
 
   function get_data() {
     post_to('/ajaj/getdata', {}, function (data) {
-      console.log($.toJSON(data))
+      console.log($.toJSON(data));
+      // TODO I NEED TO SORT THESE BASED ON .order OR THE DAMNED THING IS USELESS
+      // I will do that on the database! that'll make it so fucking easy!
+      for (var i in data.lists) {
+        _make_list(data.lists[i]);
+      }
+      for (var i in data.todos) {
+        //_make_todo(data.todos[i]);
+      }
     });
   }
   /*****************************************************
@@ -221,7 +228,7 @@ $(function() {
       if (!checktitle(title)) {
         dialog.find(".title").animate({backgroundColor: "red"}, 1000);
       } else {
-        make_todo(list.id, title, date);
+        make_todo(list.lid, title, date);
         dialog.dialog("close");
       }
     });
@@ -253,7 +260,7 @@ $(function() {
       } else {
 
         /* update li */
-        var $li = $("#todo_"+myitem.id);
+        var $li = $("#todo_"+myitem.tid);
         console.log($li.attr("id"));
         $li.find(".title").replaceWith("<span class='title'>"+title+"</span>");
         myitem.title=title;
@@ -274,8 +281,6 @@ $(function() {
     if (title === "")
       return false;
 
-    /*add more checks later*/
-
     return true;
   }
 
@@ -286,16 +291,27 @@ $(function() {
   /**********************************************
   * Creation functions                          *
   **********************************************/
-
   function make_todo(list, title, due) {
-    var id=items_id++;
-    var myitem={title: title, id: id, due: due, list: list, status: 0, order: lists["tab_"+list].size++};
+    var myitem={title: title, tid: null, due: due, list: list, status: 0, order: lists["tab_"+list].size++};
+    
+    // we need to fetch the ID! do this by creating it in the DB and getting it back
+    new_todo(myitem,
+             function (data) {
+               console.log($.toJSON(data));
+               myitem.tid = data.tid;
+               _make_todo(myitem);
+             },
+             function (data) {
+               console.log($.toJSON(data));
+             });
+  };
+  
+  function _make_todo(myitem) {
+    items["todo_"+myitem.id]=myitem;
 
-    items["todo_"+id]=myitem;
-
-    var $sortlist=$(".connectedSortable", "#tab_" + list);
-    var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+id+
-                  '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span><span class="title">'+title+'</span>'+
+    var $sortlist=$(".connectedSortable", "#tab_" + myitem.list);
+    var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+myitem.tid+
+                  '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span><span class="title">'+myitem.title+'</span>'+
                   '<span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
 
     var check=$item.find(".ui-icon-circle-check");
@@ -326,9 +342,6 @@ $(function() {
     $sortlist.append($item);
 
     $sortlist.sortable("refresh");
-
-    /*sendupdate*/
-    new_todo(myitem);
   };
 
   function setdroppable() {
@@ -366,7 +379,7 @@ $(function() {
     new_list(mylist,
       function (data) {
         console.log($.toJSON(data));
-        mylist.id = data.lid;
+        mylist.lid = data.lid;
         _make_list(mylist);
       },
       function (data) {
@@ -375,13 +388,13 @@ $(function() {
   };
 
   function _make_list(mylist) {
-    
-    lists["tab_"+mylist.id]=mylist;
+    console.log($.toJSON(mylist));
+    lists["tab_"+mylist.lid]=mylist;
 
     var newtab=$_tab.clone();
     var sortable=newtab.find("ul");
 
-    newtab.attr("id","tab_"+mylist.id);
+    newtab.attr("id","tab_"+mylist.lid);
     newtab.find('.additem').button().click(function(){
       /* they asked to make a new item! */
       add_todo_dialog(mylist);
@@ -397,7 +410,7 @@ $(function() {
     sortable.disableSelection();
 
     $tabs.prepend(newtab);
-    $tabs.tabs("add", "#tab_"+mylist.id, mylist.title);
+    $tabs.tabs("add", "#tab_"+mylist.lid, mylist.title);
     setdroppable();
     $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
     $tabs.find(".ui-tabs-nav").sortable("refresh");
