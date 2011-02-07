@@ -8,13 +8,18 @@ Things Done Later is a simple AJAXy Task Tracking webapp written in Perl based o
 DBIx::Class, Plack::Request, with a bit of my own magic stolen from Kona
 in.  Its primary reason for existing is that someone thought it would be fun to make.
 
-$NAME?
-----------
+Features
+---------
 
-Its name got based on this conversation:
+* Dynamic UI using Jquery UI
+* Secure Challenge-Response login system using HMAC-SHA256
 
-    <simcop2387>  What should I call it?
-    <Someoneelse>  I don't know you haven't asked me yet
+Todo
+---------
+
+* Switch to PKBDF2-HMAC-SHA256 for logins
+* Allow for more details on each task, to the point of having sub-tasks
+* Create a tutorial for new users
 
 Depedencies
 -------------
