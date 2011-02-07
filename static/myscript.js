@@ -248,8 +248,8 @@ $(function() {
       close: function() {if (loggedin) dialog.remove(); else login_dialog()},
       modal: true,
       buttons: [{ text: "Login", click: loginfunc },
-                { text: "Register", click: registerfunc },],
-      title: "Please login or register",
+                { text: "Register", click: registerfunc }],
+      title: "Please login or register"
     });
   }
 
@@ -276,7 +276,7 @@ $(function() {
       buttons: [
         {text: "Add List", click: savelist},
         {text: "Cancel", click: function () {dialog.remove()}}
-      ],
+      ]
     });
   }
   
@@ -316,7 +316,7 @@ $(function() {
     dialog.dialog({
       close: function() {
         dialog.remove();
-      },
+      }
     });
 
     dialog.find(".datepicker").datepicker();
