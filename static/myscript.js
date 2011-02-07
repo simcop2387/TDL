@@ -548,7 +548,7 @@ $(function() {
   }
   
   /* init code */
-  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='progress_text'></span><span class='ui-icon ui-icon-close'>Remove Tab</span></li>",})
+  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='progress_text'></span><span class='ui-icon ui-icon-close'>Remove Tab</span></li>"})
        .addClass('ui-tabs-vertical ui-helper-clearfix')
        .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
 
