@@ -1,41 +1,25 @@
-/**
-* Function : dump()
-* Arguments: The data - array,hash(associative array),object
-*    The level - OPTIONAL
-* Returns  : The textual representation of the array.
-* This function was inspired by the print_r function of PHP.
-* This will accept some data as the argument and return a
-* text that will be a more readable version of the
-* array/hash/object that is given.
-*/
-function dump(arr,level) {
-var dumped_text = "";
-if(!level) level = 0;
-
-//The padding given at the beginning of the line.
-var level_padding = "";
-for(var j=0;j<level+1;j++) level_padding += "    ";
-
-if(typeof(arr) == 'object') { //Array/Hashes/Objects
- for(var item in arr) {
-  var value = arr[item];
-
-  if(typeof(value) == 'object') { //If it is an array,
-   dumped_text += level_padding + "'" + item + "' ...\n";
-   dumped_text += dump(value,level+1);
-  } else {
-   dumped_text += level_padding + "'" + item + "' => \"" + value + "\"\n";
-  }
- }
-} else { //Stings/Chars/Numbers etc.
- dumped_text = "===>"+arr+"<===("+typeof(arr)+")";
-}
-return dumped_text;
-}
-
+/* work around old browsers that don't have a console */
 if (console == null) {
   var console = {log: function () {}};
 }
+
+/* This was written while really tired.  don't look at it */
+function hextobytearray(string) {
+  if (string.length % 2)
+    throw("must be even length");
+
+  var res = new Array();
+  var h2v = function (h) {return '0123456789abcdef'.index(h)}
+
+  while (string.length) {
+    var a=string.substr(0,1),
+        b=string.substr(1,1);
+    string=string.substr(2); /*remove the part we just used*/
+
+    res.push(a*16+b);
+  };
+  return res;
+};
 
 $(function() {
   var $tabs=$("#tabs");
@@ -185,6 +169,19 @@ $(function() {
     get_data();
   }
 
+  function get_login_challenge(username, success, error) {
+    $.get('/ajaj/login', {data: $.toJSON({username: username})},
+      function (data) {
+        console.log($.toJSON(data));
+        if (data.success) {
+          success(data);
+        } else {
+          error(data);
+        }
+      }
+    );
+  }
+
   function get_data() {
     post_to('/ajaj/getdata', {}, function (data) {
       console.log($.toJSON(data));
@@ -212,19 +209,29 @@ $(function() {
     var $password = dialog.find(".password"); // TODO fix this before actually using, passwords sent in clear! SSL fixes this, as does hashing
 
     var loginfunc = function () {
-      dialog.find('.error').hide("slow");
-      post_to("/ajaj/login",
-            {"username": $username.val(), "password": $password.val()},
-            function (data) {
-              if (data.success) {
-                loggedin=1;
-                dialog.dialog("close"); finish_login()
-              } else {
-                dialog.find('.error').show("slow");
-              }
-            }
-      );
-    };
+      dialog.find('.error').hide();
+      var passhash = hashpass($password.val());
+      var username = $username.val();
+      console.log(passhash);
+
+      get_login_challenge(username, function (data) {
+        var hmac=callhmac(data.challenge, passhash);
+        post_to("/ajaj/login",
+                {"username": $username.val(), "password": hmac},
+                function (data) {
+                  if (data.success) {
+                    loggedin=1;
+                    dialog.dialog("close"); finish_login()
+                  } else {
+                    dialog.find('.error').show("slow");
+                  }
+                });
+      },
+      function (data) {
+        dialog.find('.error').show("slow");
+      });
+    }
+    
     var registerfunc = function () {
       if ($username.val() == '' || $password.val() == '') {
         dialog.find('.error').show('slow');
@@ -349,6 +356,14 @@ $(function() {
   /**********************************************
   * Misc. functions                             *
   **********************************************/
+  function hashpass(password) {
+    return SHA256_hash(password);
+  }
+
+  function callhmac(challenge, passhash) {
+    return HMAC_SHA256_MAC(challenge, hextobytearray(passhash));
+  }
+
   function checktitle(title) {
     if (title === "")
       return false;

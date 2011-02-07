@@ -55,7 +55,7 @@ my $app = Site::Dispatch->new(
         { url => qr|^/$|,        package => "Site::Pages::Main" }, # main site, really just a version of static but without the filename
         { url => qr|^/static/|, package => "Site::Pages::Static", test => \&Site::Pages::Static::can_send  },
         # misc methods
-        { url => qr|^/ajaj/login$|,   package => "Site::Pages::AJAJ::Login"   },
+        { url => qr|^/ajaj/login|,   package => "Site::Pages::AJAJ::Login"   },
         { url => qr|^/ajaj/logout$|,  package => "Site::Pages::AJAJ::Logout",  test => \&Site::Util::test_session },
         { url => qr|^/ajaj/getdata$|, package => "Site::Pages::AJAJ::GetData", test => \&Site::Util::test_session },
         { url => qr|^/ajaj/register$|,package => "Site::Pages::AJAJ::Register" },

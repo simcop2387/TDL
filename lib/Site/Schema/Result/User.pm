@@ -44,6 +44,12 @@ __PACKAGE__->table("users");
   is_nullable: 0
   original: {data_type => "varchar"}
 
+=head2 lastchallenge
+
+  data_type: 'text'
+  is_nullable: 1
+  original: {data_type => "varchar"}
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -70,6 +76,12 @@ __PACKAGE__->add_columns(
   {
     data_type   => "text",
     is_nullable => 0,
+    original    => { data_type => "varchar" },
+  },
+  "lastchallenge",
+  {
+    data_type   => "text",
+    is_nullable => 1,
     original    => { data_type => "varchar" },
   },
 );
@@ -125,8 +137,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-05 17:45:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JSvaBy8wrLo0+soDaBV8rg
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-06 23:46:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iwQlk90zob5NuwyvKHSP7g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
