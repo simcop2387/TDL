@@ -4,7 +4,7 @@ use strictures 1;
 use base qw/ Site::Pages::JSON /;
 use Site::Utils;
 use Digest::HMAC qw(hmac_hex);
-use Digest::SHA256;
+use Digest::SHA qw(sha256);
 
 sub handle_POST {
   my ( $self ) = @_;
@@ -72,14 +72,8 @@ sub make_session_key {
     return $_;
 }
 
-sub myhash {
-  my $ctx = Digest::SHA256::new(256);
-  $ctx->hash($_) for @_;
-  return $ctx->digest();
-}
-
 sub callhmac {
   my ($challenge, $passhash) = @_;
 # this may need a substr, need to investigate!
-  return hmac_hex($passhash, $challenge, \&myhash);
+  return hmac_hex($passhash, $challenge, \&sha256);
 }

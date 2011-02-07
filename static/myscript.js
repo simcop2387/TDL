@@ -239,7 +239,7 @@ $(function() {
       
       dialog.find('.error').hide('slow');
       post_to("/ajaj/register",
-              {"username": $username.val(), "password": $password.val()},
+              {"username": $username.val(), "password": hashpass($password.val())},
               function (data) {
                 if (data.success) {
                   loggedin=1;
@@ -361,7 +361,7 @@ $(function() {
   }
 
   function callhmac(challenge, passhash) {
-    return HMAC_SHA256_MAC(challenge, hextobytearray(passhash));
+    return HMAC_SHA256_MAC(challenge, passhash);
   }
 
   function checktitle(title) {
