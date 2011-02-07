@@ -6,11 +6,13 @@ use Site::Utils;
 use Digest::HMAC qw(hmac_hex);
 use Digest::SHA qw(sha256);
 
+# GET takes a username and gives back a challenge for that user
+# POST takes the HMAC of the users password hash and the challenge for authentication
+# this means that the password hash never gets transmitted and it can be verified and not have to worry about attacks (currently in 2011)
+# there is a DoS possible by someone requestion lots of challenges for a user that would prevent login.  this should be dealt with at the dispatch/webserver level instead
+
 sub handle_POST {
   my ( $self ) = @_;
-
-  # TODO: change this system to be more secure
-  # Ideally i'd like to use a challenge response instead but this will suffice for now
 
   my $data = $self->get_json();
   my ($username, $passhash) = @{$data}{qw/username password/};
@@ -36,8 +38,7 @@ sub handle_POST {
 
       return $self->json_success;
     } else {
-      # TODO this reveals too much, needed for debugging though.
-      return $self->json_failure(expected => $hmac, got => $passhash, challenge => $challenge);
+      return $self->json_failure;
     }
   } else {
     return $self->json_failure;
