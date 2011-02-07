@@ -25,4 +25,4 @@ body{ font-size: 75%; }/* background-image: url('back.png'); background-attachme
 .ui-dialog { margin:0 auto; }
 
 /* for better progress bars */
-.ui-progressbar-value {background-image: url("ui-bg_inset-soft_100_deedf7_1x100_green.png") !important;}
+.ui-progressbar-value {background-image: url("/static/jq/css/custom-theme/images/ui-bg_inset-soft_100_deedf7_1x100_green.png") !important;}
