@@ -56,8 +56,10 @@ sub test_session {
     my ( $res, $con, $uri ) = get_request_info( $req );
 
     # TODO check the session
+    my $session = $req->cookies->{session};
+    my $r = $Site::heap{schema}->resultset('Session')->find({sessionkey => $session});
 
-    #return 0 if $uri =~ /\.\./;
+    return 0 unless $r;
     return 1;
 }
 
