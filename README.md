@@ -26,7 +26,9 @@ Depedencies
 * Perl
 
 ### CPAN Modules
+
 > this may be wrong; I haven't verified everything yet
+
 * strictures
 * indirect
 * Template
