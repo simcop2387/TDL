@@ -23,3 +23,6 @@ body{ font-size: 75%; }/* background-image: url('back.png'); background-attachme
 .ui-progressbar a {color: #000000 !important; font-weight: normal !important;}
 .progress_text {color: #000000 !important; font-weight: normal !important; align: center;}
 .ui-dialog { margin:0 auto; }
+
+/* for better progress bars */
+.ui-progressbar-value {background-image: url("ui-bg_inset-soft_100_deedf7_1x100_green.png") !important;}
