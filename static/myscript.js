@@ -100,6 +100,9 @@ $(function() {
       arr.push(items[id].tid);
     });
 
+    mylist.size=i;
+    updateprogress(mylist);
+    
     /* send ajax post for mylist and arr */
     post_to('/ajaj/todo/order', {todos: arr}, function(data) {
       if (!data.success) {
@@ -118,17 +121,15 @@ $(function() {
     var lid = lists[listelem].lid;
     var oldlist = items[item].lid;
 
+    console.log("change_list", item, lid, oldlist);
+
     items[item].lid = lid; /* set the new list */
 
     // send item update, with new list
     change_todo(items[item], function() {}, function () {});
     // send order of old list and new list
-    update_list(lists[oldlist]);
+    update_list(lists["tab_"+oldlist]);
     update_list(lists[listelem]);
-    //lists[oldlist].size--;
-    //lists[listelem].size++;
-    //updateprogress(lists[oldlist]);
-    //updateprogress(lists[listelem]);
     return true;
   }
 
@@ -360,10 +361,9 @@ $(function() {
   }
 
   function updateprogress(mylist) {
+    console.log("inprogress", $.toJSON(mylist));
     if (mylist == null) // i've got a bug or two in here and i don't understand them
       return;
-    
-    console.log("inprogress", $.toJSON(mylist));
 
     if (mylist.size == 0) { // don't try to divide by 0
       $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().progressbar("value", 0);
@@ -419,6 +419,7 @@ $(function() {
       /* send updates */
       change_todo(myitem, function() {
         $item.removeClass("ui-state-default").addClass("ui-state-highlight");
+        check.unbind('click');
         check.click(unfinishme);
       },
       function () {
@@ -431,6 +432,7 @@ $(function() {
       
       change_todo(myitem, function() {
         $item.removeClass("ui-state-highlight").addClass("ui-state-default");
+        check.unbind('click');
         check.click(finishme);
       },
       function () {
@@ -462,7 +464,9 @@ $(function() {
   };
 
   function setdroppable() {
-    var $tab_items = $( "ul:first li", $tabs ).droppable({
+    var $tab_items = $( "ul:first li", $tabs );
+    $tab_items.droppable("destroy");
+    $tab_items.droppable({
       tolerance: 'pointer',
       accept: ".connectedSortable li",
       hoverClass: "ui-state-hover",
