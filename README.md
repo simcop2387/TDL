@@ -1,10 +1,10 @@
-$NAME
+Things Done Later
 =====
 
-What Is $NAME
+What Is Things Done Later?
 -------------
 
-$NAME is a simple AJAXy Task Tracking webapp written in Perl based on
+Things Done Later is a simple AJAXy Task Tracking webapp written in Perl based on
 DBIx::Class, Plack::Request, with a bit of my own magic stolen from Kona
 in.  Its primary reason for existing is that someone thought it would be fun to make.
 
@@ -26,7 +26,7 @@ Depedencies
 * Perl
 
 ### CPAN Modules
-> this may be wrong, copied from Kona and i haven't verified everything yet
+> this may be wrong; I haven't verified everything yet
 * strictures
 * indirect
 * Template
@@ -40,17 +40,18 @@ Depedencies
 * File::MMagic
 * FCGI::ProcManager
 * Moose
+* Moo
 
 Installation
 --------------
 
 1. Install depedencies.  To install the CPAN Modules, I recommend cpanminus.
 1. Configure PostgreSQL:
-    > This  will change, I will be using ... to deploy based off the schema itself.
     1. Create a user and database.
-    1. Import conf/sql/schema-*.sql;
     1. Edit configuration in conf/development.yaml to include authentication credentials.
+    1. Run tools/setup_db -c conf/development.yaml
 1. Configure lighttpd based on the configuration file conf/lighttpd.conf
+1. Edit dispatch.fcgi to point it to the conf/development.yaml if it isn't already
 1. Run the app via command: plackup -s FCGI -l 127.0.0.1:8080 dispatch.fcgi
 
 Authors
