@@ -513,6 +513,5 @@ $(function() {
        .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
 
   $tabs.removeClass('ui-widget-content');
-
-  login_dialog();
+  $tabs.oneTime(250, function() {login_dialog()});
 });
