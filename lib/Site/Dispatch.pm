@@ -1,6 +1,7 @@
 package Site::Dispatch;
 use strictures 1;
 use Plack::Request;
+use feature qw'switch';
 
 my %cache;
 
@@ -41,11 +42,25 @@ sub new {
             $res->body( "File Not Found!" );
 
         }
-        
-        if ( $req->path( ) =~ /\.(css)$/ ) {
-            $res->header( 'Content-Type' => 'text/css' );
-        } else {
-            $res->header( 'Content-Type' => 'text/html' );
+
+        unless ($res->header('Content-Type')) {
+          given ($req->path()) {
+            when (/\.css$/) {
+              $res->header( 'Content-Type' => 'text/css' );
+            }
+            when (/\.png$/) {
+              $res->header( 'Content-Type' => 'image/png' );
+            }
+            when (/\.jpe?g$/) {
+              $res->header( 'Content-Type' => 'image/jpeg' );
+            }
+            when (/\.js$/) {
+              $res->header( 'Content-Type' => 'application/javascript' );
+            }
+            default {
+              $res->header( 'Content-Type' => 'text/html' );
+            }
+          }
         }
         $res->finalize();
     };
