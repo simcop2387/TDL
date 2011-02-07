@@ -109,6 +109,9 @@ $(function() {
   }
 
   function change_list($item, listelem) {
+    if ($item == null || listelem == null)
+      return;
+    
     /* send new order of lists */
     /* listelem is the new list */
     var item = $item.attr("id");
@@ -117,14 +120,16 @@ $(function() {
 
     items[item].lid = lid; /* set the new list */
 
-    console.log(printStackTrace());
     // send item update, with new list
     change_todo(items[item], function() {}, function () {});
     // send order of old list and new list
     update_list(lists[oldlist]);
-    updateprogress(lists[oldlist]);
     update_list(lists[listelem]);
-    updateprogress(lists[listelem]);
+    //lists[oldlist].size--;
+    //lists[listelem].size++;
+    //updateprogress(lists[oldlist]);
+    //updateprogress(lists[listelem]);
+    return true;
   }
 
   function new_list(mylist, callback, errorback) {
@@ -539,7 +544,7 @@ $(function() {
   }
   
   /* init code */
-  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='ui-icon ui-icon-close'>Remove Tab</span></li>",})
+  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='progress_text'></span><span class='ui-icon ui-icon-close'>Remove Tab</span></li>",})
        .addClass('ui-tabs-vertical ui-helper-clearfix')
        .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
 
