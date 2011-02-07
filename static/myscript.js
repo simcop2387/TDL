@@ -210,8 +210,8 @@ $(function() {
 
     var loginfunc = function () {
       dialog.find('.error').hide();
-      var passhash = hashpass($password.val());
       var username = $username.val();
+      var passhash = callhmac(hashpass($username.val()), hashpass($password.val()));
       console.log(passhash);
 
       get_login_challenge(username, function (data) {
@@ -239,7 +239,7 @@ $(function() {
       
       dialog.find('.error').hide('slow');
       post_to("/ajaj/register",
-              {"username": $username.val(), "password": hashpass($password.val())},
+              {"username": $username.val(), "password": callhmac(hashpass($username.val()), hashpass($password.val()))},
               function (data) {
                 if (data.success) {
                   loggedin=1;
