@@ -22,6 +22,8 @@ sub handle_POST {
     my $dbpass = $row->password();
     my $hmac = callhmac($challenge, $dbpass);
     
+    $row->update({lastchallenge => undef}); # clear the challenge so it can't be reused
+    
     if ($passhash eq $hmac) {
       my $uid = $row->uid; # should have a uid here, can only get one row from the database due to constraints
       my $key = make_session_key(); # get a new key, they aren't tied to the user or anything
