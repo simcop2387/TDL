@@ -122,7 +122,9 @@ $(function() {
     change_todo(items[item], function() {}, function () {});
     // send order of old list and new list
     update_list(lists[oldlist]);
+    updateprogress(lists[oldlist]);
     update_list(lists[listelem]);
+    updateprogress(lists[listelem]);
   }
 
   function new_list(mylist, callback, errorback) {
@@ -144,6 +146,7 @@ $(function() {
   
   function change_todo(myitem, callback, errorback) {
     /* send the todo finish or unfinish event */
+    updateprogress(lists["tab_"+myitem.lid]);
     post_to('/ajaj/todo/edit', myitem, function(data){
       console.log($.toJSON(data));
       if (data.success) {
@@ -348,14 +351,39 @@ $(function() {
   }
 
   function post_to(url, data, success) {
-    $.post(url, {"data": $.toJSON(data)}, function(data) {console.log("POSTOUT: ",$.toJSON(data));success(data)}, "json");
+    $.post(url, {"data": $.toJSON(data)}, function(data) {console.log("POSTOUT: ",$.toJSON(data)); success(data)}, "json");
+  }
+
+  function updateprogress(mylist) {
+    if (mylist == null) // i've got a bug or two in here and i don't understand them
+      return;
+    
+    console.log("inprogress", $.toJSON(mylist));
+
+    if (mylist.size == 0) { // don't try to divide by 0
+      $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().progressbar("value", 0);
+    } else {
+      var lid=mylist.lid; // who are we checking?
+      var what=$("#tab_"+lid+" li");
+
+      var n=0;
+      what.each(function() {
+        var id=$(this).attr("id");
+        console.log(id, items[id].finished);
+        if (items[id].finished)
+          n++;
+      });
+      var p=100 * n/mylist.size;
+      $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().progressbar("value", p);
+    }
+    
   }
 
   /**********************************************
   * Creation functions                          *
   **********************************************/
   function make_todo(list, title, due) {
-    var myitem={title: title, tid: null, due: due, lid: list, finished: false, order: lists["tab_"+list].size++};
+    var myitem={title: title, tid: null, due: due, lid: list, finished: false, order: lists["tab_"+list].size};
     
     // we need to fetch the ID! do this by creating it in the DB and getting it back
     new_todo(myitem,
@@ -371,7 +399,7 @@ $(function() {
   
   function _make_todo(myitem) {
     console.log($.toJSON(myitem));
-    
+    lists["tab_"+myitem.lid].size++;
     items["todo_"+myitem.tid]=myitem;
 
     var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
@@ -394,14 +422,14 @@ $(function() {
     };
 
     var unfinishme=function() {
-      myitem.finished=true;
+      myitem.finished=false;
       
       change_todo(myitem, function() {
         $item.removeClass("ui-state-highlight").addClass("ui-state-default");
         check.click(finishme);
       },
       function () {
-        myitem.finished=false;
+        myitem.finished=true;
       });
     };
 
@@ -425,6 +453,7 @@ $(function() {
     $sortlist.append($item);
 
     $sortlist.sortable("refresh");
+    updateprogress(lists["tab_"+myitem.lid]);
   };
 
   function setdroppable() {
@@ -496,6 +525,8 @@ $(function() {
 
     $tabs.prepend(newtab);
     $tabs.tabs("add", "#tab_"+mylist.lid, mylist.title);
+    $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().progressbar({value: 0});
+    
     $tabs.find(".ui-icon-close", "#tab_"+mylist.lid).click(function () {
       delete_list(mylist, function() {
         $tabs.tabs("remove", mylist.order);
