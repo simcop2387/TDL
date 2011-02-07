@@ -288,7 +288,7 @@ $(function() {
     dialog.dialog({
       close: function() {
         dialog.remove();
-      },
+      }
     });
 
     dialog.find(".datepicker").datepicker();
