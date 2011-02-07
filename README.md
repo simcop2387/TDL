@@ -46,7 +46,6 @@ Depedencies
 * DateTime::Format::Pg
 * File::MMagic
 * FCGI::ProcManager
-* Moose
 * Moo
 * Digest::HMAC
 * Digest::SHA
