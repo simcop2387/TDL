@@ -4,6 +4,7 @@ body{ font-size: 75%; }/* background-image: url('back.png'); background-attachme
 .connectedSortable li .arrows { float: left; margin-left: -1.3em; }
 
 .pullright {float: right;}
+.pullleft {float: left; margin-left: -1px;}
 .clear {clear: both;}
 
 .hidden {display: none;}

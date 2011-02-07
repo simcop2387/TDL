@@ -409,8 +409,8 @@ $(function() {
 
     var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
     var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+myitem.tid+
-                  '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span><span class="title">'+myitem.title+'</span>'+
-                  '<span class="pullright ui-icon ui-icon-close"></span><span class="pullright ui-icon ui-icon-circle-check"></span><span class="pullright ui-icon ui-icon-wrench"></span></li>');
+                      '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span><span class="pullleft ui-icon ui-icon-circle-check"></span><span class="title">'+myitem.title+'</span>'+
+                  '<span class="pullright ui-icon ui-icon-close"></span><span class="pullright ui-icon ui-icon-pencil"></span></li>');
 
     var check=$item.find(".ui-icon-circle-check");
     var finishme=function() {
@@ -453,7 +453,7 @@ $(function() {
       });
     });
 
-    $item.find("span.ui-icon-wrench").click(function() {
+    $item.find("span.ui-icon-pencil").click(function() {
       edit_todo_dialog(myitem);
     });
 
