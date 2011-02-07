@@ -44,7 +44,7 @@ Depedencies
 * Moose
 * Moo
 * Digest::HMAC
-* Digest::SHA256
+* Digest::SHA
 
 Installation
 --------------
