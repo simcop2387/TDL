@@ -5,7 +5,6 @@
 <head>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script>
   <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js" type="text/javascript"></script>
-  <script src="/static/stacktrace.js" type="text/javascript"></script>
   <script src="/static/jquery.timers-1.2.js"></script>
   <script src="/static/jquery.json-2.2.min.js" type="text/javascript"></script>
   <script src="/static/jssha256.js" type="text/javascript"></script>
@@ -20,11 +19,14 @@
 <body>
 
 <div class="header">
-  <span id="sitetitle">Things Done Later</span>
-  <span id="mainprogress">progressbar</span>
-  <span id="accountmenu">My Account</span>
-  <span id="aboutmenu">About</span>
-  <span id="helpmenu">Help</span>
+  <div id="sitetitle">Things Done Later</div>
+  <ul class="menu">
+    <li>My Account</li>
+    <li>About</li>
+    <li>Help</li>
+  </ul>
+  <div id="mainprogress">
+  </div>
 </div>
 
  <div class="content">
@@ -39,9 +41,15 @@
 <div class="hidden" id="hidden">
   <!-- dialog boxes! -->
   <div id="_login" title="">
-    <span class="error hidden">Invalid Username or Password</span><br />
-    <span class="dfield">Username:</span><input class="username" /><br />
-    <span class="dfield">Password:</span><input class="password" type="password"/>
+    <form>
+      <span class="error hidden">Invalid Username or Password</span><br />
+      <span class="dfield">Username:</span><input id="username" /><br />
+      <span class="dfield">Password:</span><input id="password" type="password"/><br />
+      <div class="hidden" id="regfields">
+        <span class="dfield">Repeat Password:</span><input id="repeated" type="password"/><br />
+        <span class="dfield">Email:</span><input id="email" />
+      </div>
+    </span>
   </div>
 
   <div id="_add_list" title="Add a list">

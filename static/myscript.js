@@ -1,7 +1,7 @@
 /* work around old browsers that don't have a console */
-if (console == null) {
+/*if (console == null) {
   var console = {log: function () {}};
-}
+}*/
 
 /* This was written while really tired.  don't look at it */
 function hextobytearray(string) {
@@ -33,6 +33,8 @@ $(function() {
   var items=new Array();
 
   var list_count=0;
+  var alive_todo=0;
+  var finished_todo=0;
 
   /****INIT ONLY FUNC*****/
   function set_ids(list, item) {
@@ -205,11 +207,19 @@ $(function() {
     var loggedin=0; // used to prevent the user from just closing the box because i can't get the damned thing to remove the X
     $("body").append(dialog);
 
-    var $username = dialog.find(".username");
-    var $password = dialog.find(".password"); // TODO fix this before actually using, passwords sent in clear! SSL fixes this, as does hashing
+    var $username = dialog.find("#username");
+    var $password = dialog.find("#password");
+    var $passrepeat = dialog.find("#repeated");
+    var $emailaddr = dialog.find("#email");
 
     var loginfunc = function () {
       dialog.find('.error').hide();
+
+      if ($username.val() == '' || $password.val() == '') {
+        dialog.find('.error').show('slow');
+        return;
+      };
+      
       var username = $username.val();
       var passhash = callhmac(hashpass($username.val()), hashpass($password.val()));
       console.log(passhash);
@@ -231,13 +241,22 @@ $(function() {
         dialog.find('.error').show("slow");
       });
     }
-    
+
+    var showreg = false;
     var registerfunc = function () {
+      if (!showreg) {
+        dialog.find("#regfields").hide().removeClass('hidden').show("slow");
+        showreg = true;
+        return;
+      };
+      
       if ($username.val() == '' || $password.val() == '') {
         dialog.find('.error').show('slow');
+        return;
       };
       
       dialog.find('.error').hide('slow');
+
       post_to("/ajaj/register",
               {"username": $username.val(), "password": callhmac(hashpass($username.val()), hashpass($password.val()))},
               function (data) {
@@ -413,7 +432,17 @@ $(function() {
       $parent.progressbar("value", p);
       $parent.find('.progress_text').text(""+Math.floor(p)+"%");
     }
-    
+
+    update_master_progress();
+  }
+
+  function update_master_progress() {
+    var $mainprog = $("#mainprogress");
+    if (alive_todo==0) {
+      $mainprog.hide().progressbar("value", 0);
+    } else {
+      $mainprog.show().progressbar("value", 100*finished_todo/alive_todo);
+    }
   }
 
   /**********************************************
@@ -451,6 +480,7 @@ $(function() {
     console.log($.toJSON(myitem));
     lists["tab_"+myitem.lid].size++;
     items["todo_"+myitem.tid]=myitem;
+    alive_todo++;
 
     var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
     var $item = $('<li id="todo_'+myitem.tid+'"></li>');
@@ -503,6 +533,7 @@ $(function() {
     var check=$inner.find(".ui-icon-circle-check");
     var finishme=function() {
       myitem.finished=true;
+      finished_todo++;
 
       /* send updates */
       change_todo(myitem, function() {
@@ -511,12 +542,14 @@ $(function() {
         check.click(unfinishme);
       },
       function () {
+        finished_todo--;
         myitem.finished=false;
       });
     };
 
     var unfinishme=function() {
       myitem.finished=false;
+      finished_todo--;
       
       change_todo(myitem, function() {
         $inner.removeClass("ui-state-highlight").addClass("ui-state-default");
@@ -525,12 +558,14 @@ $(function() {
       },
       function () {
         myitem.finished=true;
+        finished_todo++;
       });
     };
 
     if (myitem.finished) {
       $inner.removeClass("ui-state-default").addClass("ui-state-highlight");
       check.click(unfinishme);
+      finished_todo++;
     } else {
       check.click(finishme); 
     }
@@ -647,6 +682,7 @@ $(function() {
        .addClass('ui-tabs-vertical ui-helper-clearfix')
        .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
 
+  $("#mainprogress").hide().progressbar({value: 0});
   $tabs.removeClass('ui-widget-content');
   $tabs.oneTime(250, function() {login_dialog()});
 });
