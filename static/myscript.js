@@ -26,7 +26,6 @@ $(function() {
   var $_tab=$("#_tab");
   var $hidden=$("#hidden");
   var $_add_dialog=$("#_add_todo");
-  var $_edit_dialog=$("#_edit_todo");
   var $_add_list_dialog=$("#_add_list");
   var $_login_dialog=$("#_login");
   
@@ -316,11 +315,12 @@ $(function() {
   }
 
   function edit_todo_dialog(myitem) {
-    var dialog = $_edit_dialog.clone();
+    var dialog = $_add_dialog.clone();
 
     dialog.attr("id", null); // clear the id
     $("body").append(dialog);
     dialog.dialog({
+      title: "Edit this todo",
       close: function() {
         dialog.remove();
       },
@@ -420,6 +420,17 @@ $(function() {
                console.log($.toJSON(data));
              });
   };
+
+  function _setup_todo_arrows(myitem) {
+    var $arrows = $('.arrows', '#todo_'+myitem.id);
+    
+    if (myitem.desc) {
+      $arrows.addClass('ui-icon-triangle-1-e');
+    } else {
+      $arrows.removeClass('ui-icon-triangle-1-e')
+             .removeClass('ui-icon-triangle-1-s');
+    }
+  }
   
   function _make_todo(myitem) {
     console.log($.toJSON(myitem));
@@ -430,10 +441,12 @@ $(function() {
     var $item = $('<li id="todo_'+myitem.tid+'"></li>');
     
     var $inner = $('<div class="ui-state-default ui-corner-all todo_inner"></div>');
-    var $desc = $('<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+myitem.tid+'">foo</div>');
-    
-    $inner.append('<span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span>'+
-                  '<span class="pullleft ui-icon ui-icon-circle-check"></span>'+
+    var $desc = $('<pre class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+myitem.tid+'"></pre>');
+
+    var $icon = $('<span class="arrows ui-icon"></span>');
+
+    $inner.append($icon);
+    $inner.append('<span class="pullleft ui-icon ui-icon-circle-check"></span>'+
                   '<span class="title">'+myitem.title+'</span>'+
                   '<span class="pullright ui-icon ui-icon-close"></span>'+
                   '<span class="pullright ui-icon ui-icon-pencil"></span>');
@@ -443,6 +456,11 @@ $(function() {
 
     $desc.hide();
 
+    myitem.desc="foo";
+    if (myitem.desc) {
+      $desc.text(myitem.desc);
+    }
+
     var hidedesc = function () {
       $desc.hide("fold", 500);
       $inner.unbind("dblclick");
@@ -450,14 +468,15 @@ $(function() {
     };
     
     var showdesc = function () {
-      $desc.show("fold", 500);
-      $inner.unbind("dblclick");
-      $inner.dblclick(hidedesc);
+      if (myitem.desc) {
+        $desc.show("fold", 500);
+        $inner.unbind("dblclick");
+        $inner.dblclick(hidedesc);
+      }
     };
     
     $inner.dblclick(showdesc);
 
-    
     var check=$inner.find(".ui-icon-circle-check");
     var finishme=function() {
       myitem.finished=true;
@@ -506,6 +525,7 @@ $(function() {
     $sortlist.append($item);
 
     $sortlist.sortable("refresh");
+    _setup_todo_arrows(myitem); // setup the arrows
     updateprogress(lists["tab_"+myitem.lid]);
   };
 
@@ -590,7 +610,7 @@ $(function() {
     setdroppable();
     $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
     $tabs.find(".ui-tabs-nav").sortable("refresh");
-    make_listbutt();
+    //make_listbutt(); // leave the button at the top, lets see how that works
   }
   
   /* init code */
