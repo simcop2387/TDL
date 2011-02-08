@@ -216,7 +216,7 @@ $(function() {
       dialog.find('.error').hide();
 
       if ($username.val() == '' || $password.val() == '') {
-        dialog.find('.error').show('slow');
+        dialog.find('.error').text('Invalid username or password').show('slow');
         return;
       };
       
@@ -238,7 +238,7 @@ $(function() {
                 });
       },
       function (data) {
-        dialog.find('.error').show("slow");
+        dialog.find('.error').text('Invalid username or password').show('slow');
       });
     }
 
@@ -248,17 +248,18 @@ $(function() {
         dialog.find("#regfields").hide().removeClass('hidden').show("slow");
         showreg = true;
         return;
-      };
-      
-      if ($username.val() == '' || $password.val() == '') {
-        dialog.find('.error').show('slow');
+      } else if ($username.val() == '' || $password.val() == '') {
+        dialog.find('.error').text('Invalid username or password').show('slow');
         return;
-      };
+      } else if ($passrepeat.val() != $password.val()) {
+        dialog.find('.error').text('Passwords do not match').show('slow');
+        return;
+      }
       
       dialog.find('.error').hide('slow');
 
       post_to("/ajaj/register",
-              {"username": $username.val(), "password": callhmac(hashpass($username.val()), hashpass($password.val()))},
+              {"email": $emailaddr.val(), "username": $username.val(), "password": callhmac(hashpass($username.val()), hashpass($password.val()))},
               function (data) {
                 if (data.success) {
                   loggedin=1;
