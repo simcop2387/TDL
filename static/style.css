@@ -5,6 +5,9 @@ body{ font-size: 75%; }/* background-image: url('back.png'); background-attachme
 .connectedSortable li .ui-accordion-content { margin: -0.3em 1.3em 0 1.3em; border-top: none; padding: 0.5em;}
 
 .dfield {width: 7em; text-align: right; display: inline-block;}
+.hide-icon {background-position: -9000px -9000px;}
+
+.ui-dialog .description {width: 95%}
 
 .pullright {float: right;}
 .pullleft {float: left; margin-left: -1px;}

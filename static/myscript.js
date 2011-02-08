@@ -299,11 +299,12 @@ $(function() {
         {text: "Save Changes", click: function() {
           var title = dialog.find(".title").val();
           var date = dialog.find(".datepicker").val();
+          var description = dialog.find(".description").val();
 
           if (!checktitle(title)) {
             dialog.find(".title").animate({backgroundColor: "red"}, 1000);
           } else {
-            make_todo(list.lid, title, date);
+            make_todo(list.lid, title, date, description);
             dialog.dialog("close");
           }
         }},
@@ -328,6 +329,7 @@ $(function() {
         {text: "Save Changes", click: function() {
           var title = dialog.find(".title").val();
           var date = dialog.find(".datepicker").val();
+          var description = dialog.find(".description").val();
 
           if (!checktitle(title)) {
             dialog.find(".title").animate({backgroundColor: "red"}, 1000);
@@ -335,10 +337,15 @@ $(function() {
 
             /* update li */
             var $li = $("#todo_"+myitem.tid);
+            var $desc = $("#todo_desc_"+myitem.tid);
             console.log($li.attr("id"));
-            $li.find(".title").replaceWith("<span class='title'>"+title+"</span>");
+            $li.find(".title").text(title);
             myitem.title=title;
             myitem.due = date;
+            myitem.description=description;
+            $desc.text(description);
+            
+            _setup_todo_arrows(myitem);
 
             change_todo(myitem, function() {
               dialog.dialog("close");
@@ -355,6 +362,7 @@ $(function() {
     dialog.find(".datepicker").datepicker();
     dialog.find(".datepicker").val(myitem.due);
     dialog.find(".title").val(myitem.title);
+    dialog.find(".description").val(myitem.description);
   }
 
   /**********************************************
@@ -406,8 +414,8 @@ $(function() {
   /**********************************************
   * Creation functions                          *
   **********************************************/
-  function make_todo(list, title, due) {
-    var myitem={title: title, tid: null, due: due, lid: list, finished: false, order: lists["tab_"+list].size};
+  function make_todo(list, title, due, description) {
+    var myitem={title: title, tid: null, due: due, lid: list, finished: false, order: lists["tab_"+list].size, description: description};
     
     // we need to fetch the ID! do this by creating it in the DB and getting it back
     new_todo(myitem,
@@ -422,13 +430,15 @@ $(function() {
   };
 
   function _setup_todo_arrows(myitem) {
-    var $arrows = $('.arrows', '#todo_'+myitem.id);
+    var $arrows = $('div:first .arrows', '#todo_'+myitem.tid);
     
-    if (myitem.desc) {
-      $arrows.addClass('ui-icon-triangle-1-e');
+    if (myitem.description) {
+      $arrows.addClass('ui-icon-triangle-1-e')
+             .removeClass('hide-icon');
     } else {
       $arrows.removeClass('ui-icon-triangle-1-e')
-             .removeClass('ui-icon-triangle-1-s');
+             .removeClass('ui-icon-triangle-1-s')
+             .addClass('hide-icon');
     }
   }
   
@@ -456,19 +466,27 @@ $(function() {
 
     $desc.hide();
 
-    myitem.desc="foo";
-    if (myitem.desc) {
-      $desc.text(myitem.desc);
+    //myitem.desc="foo";
+    if (myitem.description) {
+      $desc.text(myitem.description);
     }
 
     var hidedesc = function () {
+      var $arrows = $('div:first .arrows', '#todo_'+myitem.tid);
+      $arrows.removeClass('ui-icon-triangle-1-s')
+             .addClass('ui-icon-triangle-1-e');
+      
       $desc.hide("fold", 500);
       $inner.unbind("dblclick");
       $inner.dblclick(showdesc);
     };
     
     var showdesc = function () {
-      if (myitem.desc) {
+      if (myitem.description) {
+        var $arrows = $('div:first .arrows', '#todo_'+myitem.tid);
+        $arrows.removeClass('ui-icon-triangle-1-e')
+               .addClass('ui-icon-triangle-1-s');
+
         $desc.show("fold", 500);
         $inner.unbind("dblclick");
         $inner.dblclick(hidedesc);
