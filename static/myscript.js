@@ -84,7 +84,7 @@ $(function() {
     });
 
     mylist.size=i;
-    updateprogress(mylist);
+    update_list_progress(mylist);
     
     /* send ajax post for mylist and arr */
     post_to('/ajaj/todo/order', {todos: arr}, function(data) {
@@ -135,7 +135,7 @@ $(function() {
   
   function change_todo(myitem, callback, errorback) {
     /* send the todo finish or unfinish event */
-    updateprogress(lists["tab_"+myitem.lid]);
+    update_list_progress(lists["tab_"+myitem.lid]);
     post_to('/ajaj/todo/edit', myitem, function(data){
       console.log($.toJSON(data));
       if (data.success) {
@@ -188,6 +188,7 @@ $(function() {
       // I will do that on the database! that'll make it so fucking easy!
       for (var i in data.lists) {
         _make_list(data.lists[i]);
+        update_list_progress(lists["tab_"+data.lists[i].lid]);
       }
       for (var i in data.todos) {
         _make_todo(data.todos[i]);
@@ -245,7 +246,7 @@ $(function() {
                   dialog.dialog("close"); finish_login()
                 } else {
                   dialog.find('.error').show("slow");
-                }                
+                }
               }
       );
     };
@@ -387,14 +388,17 @@ $(function() {
     $.post(url, {"data": $.toJSON(data)}, function(data) {console.log("POSTOUT: ",$.toJSON(data)); success(data)}, "json");
   }
 
-  function updateprogress(mylist) {
+  function update_list_progress(mylist) {
     console.log("inprogress", $.toJSON(mylist));
     if (mylist == null) // i've got a bug or two in here and i don't understand them
       return;
 
     if (mylist.size == 0) { // don't try to divide by 0
-      $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().progressbar("value", 0);
+      var $parent = $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent();
+      $parent.progressbar("value", 0);
+      $parent.find('.progress_text').text(""); // we have nothing in the list
     } else {
+      var $parent = $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent();
       var lid=mylist.lid; // who are we checking?
       var what=$("#tab_"+lid+" li");
 
@@ -406,7 +410,8 @@ $(function() {
           n++;
       });
       var p=100 * n/mylist.size;
-      $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().progressbar("value", p);
+      $parent.progressbar("value", p);
+      $parent.find('.progress_text').text(""+Math.floor(p)+"%");
     }
     
   }
@@ -536,7 +541,7 @@ $(function() {
           $item.remove();
           
           lists["tab_"+myitem.lid].size--;
-          updateprogress(lists["tab_"+myitem.lid]);
+          update_list_progress(lists["tab_"+myitem.lid]);
           myitem.lid=null; // set it null so i can filter later
         })
       });
@@ -550,7 +555,7 @@ $(function() {
 
     $sortlist.sortable("refresh");
     _setup_todo_arrows(myitem); // setup the arrows
-    updateprogress(lists["tab_"+myitem.lid]);
+    update_list_progress(lists["tab_"+myitem.lid]);
   };
 
   function setdroppable() {
@@ -638,7 +643,7 @@ $(function() {
   }
   
   /* init code */
-  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}</a><span class='progress_text'></span><span class='ui-icon ui-icon-close'>Remove Tab</span></li>"})
+  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close'>Remove Tab</span></li>"})
        .addClass('ui-tabs-vertical ui-helper-clearfix')
        .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
 
