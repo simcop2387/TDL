@@ -1,9 +1,9 @@
-body{ padding: 0; margin: 0; font-size: 75%; background-image: url('back.png'); }
+body{ padding: 0; margin: 0; font-size: 75%; background-color: #F8FDFF; }
 .connectedSortable { list-style-type: none; margin: 0 auto 0 auto; padding: 0; }
 .connectedSortable li .todo_inner {margin: 3px; padding: 0.3em; padding-left: 1.3em; line-height: 1.5em; }
 .connectedSortable li .todo_inner .arrows { float: left; margin-left: -1.3em; }
 .connectedSortable li .ui-accordion-content { margin: -0.3em 1.3em 0 1.3em; border-top: none; padding: 0.5em;}
-.connectedSortable li .ui-state-highlight {background-color: #F2EDFF; background-image: none; border-color: #BFA6FF}
+/*.connectedSortable li .ui-state-highlight {background-color: #F2EDFF; background-image: none; border-color: #BFA6FF}*/
 
 .dfield {width: 7em; text-align: right; display: inline-block;}
 .hide-icon {background-position: -9000px -9000px;}
@@ -38,7 +38,7 @@ body{ padding: 0; margin: 0; font-size: 75%; background-image: url('back.png'); 
 }
 
 /* header */
-.header {margin: 0; height: 3em; background-color: #9BFFCA; width: 100%; position: fixed; z-index: 500;}
+.header {margin: 0; height: 3em; background-color: #F8FDFF; width: 100%; position: absolute; top:0; border-bottom: 1px solid #F0F8FF; z-index:1;}
 .content {padding-left: 1em; padding-right: 1em; padding-top: 4em;}
 #sitetitle {display: block; float: left; font-size: 2em;margin-top:0.25em; padding-left: 1em; }
 ul.menu {float: right; margin-right: 3em; border-right: 1px solid black;}
