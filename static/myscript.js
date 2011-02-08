@@ -295,24 +295,24 @@ $(function() {
     dialog.dialog({
       close: function() {
         dialog.remove();
-      }
+      },
+      buttons: [
+        {text: "Save Changes", click: function() {
+          var title = dialog.find(".title").val();
+          var date = dialog.find(".datepicker").val();
+
+          if (!checktitle(title)) {
+            dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+          } else {
+            make_todo(list.lid, title, date);
+            dialog.dialog("close");
+          }
+        }},
+        {text: "Cancel", click: function(){dialog.dialog("close")}}
+      ]
     });
 
     dialog.find(".datepicker").datepicker();
-
-    dialog.find("._savechanges").click(function() {
-      var title = dialog.find(".title").val();
-      var date = dialog.find(".datepicker").val();
-
-      if (!checktitle(title)) {
-        dialog.find(".title").animate({backgroundColor: "red"}, 1000);
-      } else {
-        make_todo(list.lid, title, date);
-        dialog.dialog("close");
-      }
-    });
-
-    dialog.find("._cancel").click(function(){dialog.dialog("close")});
   }
 
   function edit_todo_dialog(myitem) {
@@ -323,34 +323,38 @@ $(function() {
     dialog.dialog({
       close: function() {
         dialog.remove();
-      }
+      },
+      buttons: [
+        {text: "Save Changes", click: function() {
+          var title = dialog.find(".title").val();
+          var date = dialog.find(".datepicker").val();
+
+          if (!checktitle(title)) {
+            dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+          } else {
+
+            /* update li */
+            var $li = $("#todo_"+myitem.tid);
+            console.log($li.attr("id"));
+            $li.find(".title").replaceWith("<span class='title'>"+title+"</span>");
+            myitem.title=title;
+            myitem.due = date;
+
+            change_todo(myitem, function() {
+              dialog.dialog("close");
+            },
+            function () {
+              /*display error!*/
+            });
+          }
+        }},
+        {text: "Cancel", click: function(){dialog.dialog("close")}}
+      ]
     });
 
     dialog.find(".datepicker").datepicker();
     dialog.find(".datepicker").val(myitem.due);
     dialog.find(".title").val(myitem.title);
-
-    dialog.find("._savechanges").click(function() {
-      var title = dialog.find(".title").val();
-      var date = dialog.find(".datepicker").val();
-
-      if (!checktitle(title)) {
-        dialog.find(".title").animate({backgroundColor: "red"}, 1000);
-      } else {
-
-        /* update li */
-        var $li = $("#todo_"+myitem.tid);
-        console.log($li.attr("id"));
-        $li.find(".title").replaceWith("<span class='title'>"+title+"</span>");
-        myitem.title=title;
-        myitem.due = date;
-
-        change_todo(myitem);
-        dialog.dialog("close");
-      }
-    });
-
-    dialog.find("._cancel").click(function(){dialog.dialog("close")});
   }
 
   /**********************************************
@@ -425,12 +429,34 @@ $(function() {
     var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
     var $item = $('<li id="todo_'+myitem.tid+'"></li>');
     
-    var $inner = $('<div class="ui-state-default ui-corner-all"></div>');
+    var $inner = $('<div class="ui-state-default ui-corner-all todo_inner"></div>');
+    var $desc = $('<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+myitem.tid+'">foo</div>');
     
-    $inner.append('<span class="pullleft ui-icon ui-icon-arrowthick-2-n-s"></span><span class="pullleft ui-icon ui-icon-circle-check"></span><span class="title">'+myitem.title+'</span><span class="pullright ui-icon ui-icon-close"></span><span class="pullright ui-icon ui-icon-pencil"></span>');
+    $inner.append('<span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span>'+
+                  '<span class="pullleft ui-icon ui-icon-circle-check"></span>'+
+                  '<span class="title">'+myitem.title+'</span>'+
+                  '<span class="pullright ui-icon ui-icon-close"></span>'+
+                  '<span class="pullright ui-icon ui-icon-pencil"></span>');
+    
     $item.append($inner);
+    $item.append($desc);
+
+    $desc.hide();
+
+    var hidedesc = function () {
+      $desc.hide("fold", 500);
+      $inner.unbind("dblclick");
+      $inner.dblclick(showdesc);
+    };
     
-    $item.append($('<div id="todo_desc_'+myitem.tid+'">foo</div>'));
+    var showdesc = function () {
+      $desc.show("fold", 500);
+      $inner.unbind("dblclick");
+      $inner.dblclick(hidedesc);
+    };
+    
+    $inner.dblclick(showdesc);
+
     
     var check=$inner.find(".ui-icon-circle-check");
     var finishme=function() {
