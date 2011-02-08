@@ -532,7 +532,13 @@ $(function() {
 
     $inner.find("span.ui-icon-close").click(function() {
       delete_todo(myitem, function () {
-        $inner.hide("slow", function () {$item.remove()})
+        $inner.hide("slow", function () {
+          $item.remove();
+          
+          lists["tab_"+myitem.lid].size--;
+          updateprogress(lists["tab_"+myitem.lid]);
+          myitem.lid=null; // set it null so i can filter later
+        })
       });
     });
 
