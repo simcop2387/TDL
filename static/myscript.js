@@ -486,16 +486,16 @@ $(function() {
     var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
     var $item = $('<li id="todo_'+myitem.tid+'"></li>');
     
-    var $inner = $('<div class="ui-state-default ui-corner-all todo_inner"></div>');
+    var $inner = $('<div class="ui-state-default ui-corner-all todo_inner"  title="Drag me around"></div>');
     var $desc = $('<pre class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+myitem.tid+'"></pre>');
 
-    var $icon = $('<span class="arrows ui-icon"></span>');
+    var $icon = $('<span class="arrows ui-icon" title="Expand description"></span>');
 
     $inner.append($icon);
-    $inner.append('<span class="pullleft ui-icon ui-icon-circle-check"></span>'+
+    $inner.append('<span class="pullleft ui-icon ui-icon-circle-check" title="Finish todo"></span>'+
                   '<span class="title">'+myitem.title+'</span>'+
-                  '<span class="pullright ui-icon ui-icon-close"></span>'+
-                  '<span class="pullright ui-icon ui-icon-pencil"></span>');
+                  '<span class="pullright ui-icon ui-icon-close" title="Delete this todo"></span>'+
+                  '<span class="pullright ui-icon ui-icon-pencil" title="Edit this todo"></span>');
     
     $item.append($inner);
     $item.append($desc);

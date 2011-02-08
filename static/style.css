@@ -3,7 +3,7 @@ body{ padding: 0; margin: 0; font-size: 75%; background-color: #F8FDFF; }
 .connectedSortable li .todo_inner {margin: 3px; padding: 0.3em; padding-left: 1.3em; line-height: 1.5em; }
 .connectedSortable li .todo_inner .arrows { float: left; margin-left: -1.3em; }
 .connectedSortable li .ui-accordion-content { margin: -0.3em 1.3em 0 1.3em; border-top: none; padding: 0.5em;}
-/*.connectedSortable li .ui-state-highlight {background-color: #F2EDFF; background-image: none; border-color: #BFA6FF}*/
+.connectedSortable li .ui-state-highlight {background-color: #EDE0F2; background-image: none; border-color: #BFA6FF}
 
 .dfield {width: 7em; text-align: right; display: inline-block;}
 .hide-icon {background-position: -9000px -9000px;}
