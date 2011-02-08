@@ -423,17 +423,22 @@ $(function() {
     items["todo_"+myitem.tid]=myitem;
 
     var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
-    var $item = $('<li class="ui-state-default ui-corner-all" id="todo_'+myitem.tid+
-                      '"><span class="arrows ui-icon ui-icon-arrowthick-2-n-s"></span><span class="pullleft ui-icon ui-icon-circle-check"></span><span class="title">'+myitem.title+'</span>'+
-                  '<span class="pullright ui-icon ui-icon-close"></span><span class="pullright ui-icon ui-icon-pencil"></span></li>');
-
-    var check=$item.find(".ui-icon-circle-check");
+    var $item = $('<li id="todo_'+myitem.tid+'"></li>');
+    
+    var $inner = $('<div class="ui-state-default ui-corner-all"></div>');
+    
+    $inner.append('<span class="pullleft ui-icon ui-icon-arrowthick-2-n-s"></span><span class="pullleft ui-icon ui-icon-circle-check"></span><span class="title">'+myitem.title+'</span><span class="pullright ui-icon ui-icon-close"></span><span class="pullright ui-icon ui-icon-pencil"></span>');
+    $item.append($inner);
+    
+    $item.append($('<div id="todo_desc_'+myitem.tid+'">foo</div>'));
+    
+    var check=$inner.find(".ui-icon-circle-check");
     var finishme=function() {
       myitem.finished=true;
 
       /* send updates */
       change_todo(myitem, function() {
-        $item.removeClass("ui-state-default").addClass("ui-state-highlight");
+        $inner.removeClass("ui-state-default").addClass("ui-state-highlight");
         check.unbind('click');
         check.click(unfinishme);
       },
@@ -446,7 +451,7 @@ $(function() {
       myitem.finished=false;
       
       change_todo(myitem, function() {
-        $item.removeClass("ui-state-highlight").addClass("ui-state-default");
+        $inner.removeClass("ui-state-highlight").addClass("ui-state-default");
         check.unbind('click');
         check.click(finishme);
       },
@@ -456,19 +461,19 @@ $(function() {
     };
 
     if (myitem.finished) {
-      $item.removeClass("ui-state-default").addClass("ui-state-highlight");
+      $inner.removeClass("ui-state-default").addClass("ui-state-highlight");
       check.click(unfinishme);
     } else {
       check.click(finishme); 
     }
 
-    $item.find("span.ui-icon-close").click(function() {
+    $inner.find("span.ui-icon-close").click(function() {
       delete_todo(myitem, function () {
-        $item.hide("slow", function () {$item.remove()})
+        $inner.hide("slow", function () {$item.remove()})
       });
     });
 
-    $item.find("span.ui-icon-pencil").click(function() {
+    $inner.find("span.ui-icon-pencil").click(function() {
       edit_todo_dialog(myitem);
     });
 
