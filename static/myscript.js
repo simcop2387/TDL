@@ -575,7 +575,11 @@ $(function() {
       delete_todo(myitem, function () {
         $inner.hide("slow", function () {
           $item.remove();
-          
+
+          if (myitem.finished)
+            finished_todo--;
+          alive_todo--;
+
           lists["tab_"+myitem.lid].size--;
           update_list_progress(lists["tab_"+myitem.lid]);
           myitem.lid=null; // set it null so i can filter later
