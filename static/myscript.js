@@ -486,16 +486,16 @@ $(function() {
     var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
     var $item = $('<li id="todo_'+myitem.tid+'"></li>');
     
-    var $inner = $('<div class="ui-state-default ui-corner-all todo_inner"  title="Drag me around"></div>');
+    var $inner = $('<div class="ui-state-default ui-corner-all todo_inner" title="Drag me around"></div>');
     var $desc = $('<pre class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+myitem.tid+'"></pre>');
 
     var $icon = $('<span class="arrows ui-icon" title="Expand description"></span>');
 
     $inner.append($icon);
-    $inner.append('<span class="pullleft ui-icon ui-icon-circle-check" title="Finish todo"></span>'+
+    $inner.append('<span class="pullleft ui-icon ui-icon-circle-check" title="Finish todo">Finish todo</span>'+
                   '<span class="title">'+myitem.title+'</span>'+
-                  '<span class="pullright ui-icon ui-icon-close" title="Delete this todo"></span>'+
-                  '<span class="pullright ui-icon ui-icon-pencil" title="Edit this todo"></span>');
+                  '<span class="pullright ui-icon ui-icon-close" title="Delete todo">Delete todo</span>'+
+                  '<span class="pullright ui-icon ui-icon-pencil" title="Edit todo">Edit todo</span>');
     
     $item.append($inner);
     $item.append($desc);
@@ -671,10 +671,11 @@ $(function() {
     $tabs.tabs("add", "#tab_"+mylist.lid, mylist.title);
     $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().progressbar({value: 0});
     
-    $tabs.find(".ui-icon-close", "#tab_"+mylist.lid).click(function () {
-      delete_list(mylist, function() {
-        $tabs.tabs("remove", mylist.order);
-      });
+    $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().find(".ui-icon-close").click(function () {
+      if (mylist.size == 0)
+        delete_list(mylist, function() {
+          $tabs.tabs("remove", mylist.order-1);
+        });
     });
     setdroppable();
     $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
@@ -683,7 +684,7 @@ $(function() {
   }
   
   /* init code */
-  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close'>Remove Tab</span></li>"})
+  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close' title='Remove list'>Remove List</span></li>"})
        .addClass('ui-tabs-vertical ui-helper-clearfix')
        .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
 
