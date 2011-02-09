@@ -55,7 +55,6 @@ $(function() {
     var i=0;
     what.each(function() {
       var id=$(this).attr("href").substr(1);
-      console.log("ARG: ", id);
       lists[id].order=i++;
       arr.push(lists[id].lid);
     });
@@ -80,7 +79,7 @@ $(function() {
     var i=0;
     what.each(function() {
       var id=$(this).attr("id");
-      console.log("ARG: ", $(this).attr("id"));
+      //console.log("ARG: ", $(this).attr("id"));
       items[id].order=i++;
       arr.push(items[id].tid);
     });
@@ -106,7 +105,7 @@ $(function() {
     var lid = lists[listelem].lid;
     var oldlist = items[item].lid;
 
-    console.log("change_list", item, lid, oldlist);
+    //console.log("change_list", item, lid, oldlist);
 
     items[item].lid = lid; /* set the new list */
 
@@ -409,7 +408,7 @@ $(function() {
   }
 
   function update_list_progress(mylist) {
-    console.log("inprogress", $.toJSON(mylist));
+    //console.log("inprogress", $.toJSON(mylist));
     if (mylist == null) // i've got a bug or two in here and i don't understand them
       return;
 
@@ -425,7 +424,6 @@ $(function() {
       var n=0;
       what.each(function() {
         var id=$(this).attr("id");
-        console.log(id, items[id].finished);
         if (items[id].finished)
           n++;
       });
