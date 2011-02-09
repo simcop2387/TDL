@@ -37,6 +37,11 @@ __PACKAGE__->table("sessions");
   default_value: (now() + '01:00:00'::interval)
   is_nullable: 0
 
+=head2 ip
+
+  data_type: 'inet'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -54,6 +59,8 @@ __PACKAGE__->add_columns(
     default_value => \"(now() + '01:00:00'::interval)",
     is_nullable   => 0,
   },
+  "ip",
+  { data_type => "inet", is_nullable => 0 },
 );
 __PACKAGE__->set_primary_key("uid");
 __PACKAGE__->add_unique_constraint("sessions_sessionkey_key", ["sessionkey"]);
@@ -76,8 +83,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-05 17:45:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3iO9RlTnU+keTOu1GtqM0A
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2011-02-08 22:25:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hVPqadc1gN6aNqLO4AQ/MA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

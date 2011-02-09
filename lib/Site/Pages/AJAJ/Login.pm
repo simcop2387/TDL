@@ -28,17 +28,8 @@ sub handle_POST {
     
     if ($passhash eq $hmac) {
       my $uid = $row->uid; # should have a uid here, can only get one row from the database due to constraints
-      my $key = make_session_key(); # get a new key, they aren't tied to the user or anything
 
-      $self->res->cookies->{session} = $key; # should default to expire on browser close by default
-
-      if (my $r=$self->schema->resultset('Session')->find({uid => $uid})) {
-        $r->update({sessionkey=>$key,
-               expires=>\[q[NOW() + interval '1 hour']],
-        });
-      } else {
-        $self->schema->resultset('Session')->create({uid => $uid, sessionkey => $key, expires=>\[q[NOW() + interval '1 hour']]})
-      };
+      create_session ( $uid, $self->req, $self->res );
 
       return $self->json_success;
     } else {

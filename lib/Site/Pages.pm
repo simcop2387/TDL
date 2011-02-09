@@ -1,6 +1,9 @@
 package Site::Pages;
 use strictures 1;
+
 use Site::Utils;
+use Site::Session;
+
 use Moo;
 
 has config => ( is => 'ro' );
@@ -30,9 +33,13 @@ sub get_params {
 }
 
 sub unroll_session {
-    my ( $self ) = @_;
-    my $key = $self->req->cookies->{session};
-    return $self->schema->resultset('Session')->find({sessionkey=>$key})->get_column('uid')
+  my ( $self ) = @_;
+  my $key = $self->req->cookies->{session};
+  my $row = $self->schema->resultset('Session')->find({sessionkey=>$key});
+
+  extend_session($key, $self->res);
+
+  return $row->get_column('uid');
 }
 
 1;
