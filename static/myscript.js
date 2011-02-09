@@ -21,6 +21,7 @@ function hextobytearray(string) {
   return res;
 };
 
+function reflow () {document.body.offsetWidth-=1; document.body.offsetWidth+=1}
 $(function() {
   var $tabs=$("#tabs");
   var $_tab=$("#_tab");
@@ -64,6 +65,7 @@ $(function() {
         console.log("ORDER ERROR: ", data.message);
       }
     });
+    reflow();
   }
 
   function update_list(mylist) {
@@ -93,6 +95,7 @@ $(function() {
         console.log("ORDER ERROR: ", data.message);
       }
     }); // we're going to "silently" ignore errors here due to the fact that it only puts things out of sync and all data is still around
+    reflow();
   }
 
   function change_list($item, listelem) {
@@ -114,7 +117,7 @@ $(function() {
     // send order of old list and new list
     update_list(lists["tab_"+oldlist]);
     update_list(lists[listelem]);
-    return true;
+    reflow();
   }
 
   function new_list(mylist, callback, errorback) {
@@ -127,11 +130,13 @@ $(function() {
                 errorback(data)
               }
             });
+    reflow();
   }
 
   function delete_list(mylist, succeed) {
     /* delete a todo */
     post_to('/ajaj/list/delete', mylist, succeed); // TODO we don't need no stinking confirmation
+    reflow();
   }
   
   function change_todo(myitem, callback, errorback) {
@@ -145,6 +150,7 @@ $(function() {
         errorback(data)
       }
     });
+    reflow();
   }
 
   function new_todo(mylist, callback, errorback) {
@@ -162,11 +168,13 @@ $(function() {
   function delete_todo(myitem, succeed) {
     /* delete a todo */
     post_to('/ajaj/todo/delete', myitem, succeed); // TODO we don't need no stinking confirmation
+    reflow();
   }
 
   function finish_login() {
     make_listbutt();
     get_data();
+    reflow();
   }
 
   function get_login_challenge(username, success, error) {
@@ -404,7 +412,20 @@ $(function() {
   }
 
   function post_to(url, data, success) {
-    $.post(url, {"data": $.toJSON(data)}, function(data) {console.log("POSTOUT: ",$.toJSON(data)); success(data)}, "json");
+    console.log(url);
+    $.ajax({
+      async: false,
+      error: function (jqXHR, textStatus, errorthrown) {
+        success({success: false, jqXHR: jqXHR, status: textStatus}); // send back the error
+      },
+      data: {"data": $.toJSON(data)},
+      success: function(data) {console.log("POSTOUT: ",$.toJSON(data)); success(data)},
+      type: "post",
+      dataType: "json",
+      url: url
+    });
+    
+    //$.post(url, {"data": $.toJSON(data)}, , "json");
   }
 
   function update_list_progress(mylist) {
@@ -672,6 +693,7 @@ $(function() {
 
     $tabs.prepend(newtab);
     $tabs.tabs("add", "#tab_"+mylist.lid, mylist.title);
+    
     $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().progressbar({value: 0});
     
     $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().find(".ui-icon-close").click(function () {
