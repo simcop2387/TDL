@@ -505,30 +505,35 @@ $(function() {
       $desc.text(myitem.description);
     }
 
+    var $arrows = $('div:first .arrows', '#todo_'+myitem.tid);
+    
     var hidedesc = function () {
-      var $arrows = $('div:first .arrows', '#todo_'+myitem.tid);
       $arrows.removeClass('ui-icon-triangle-1-s')
              .addClass('ui-icon-triangle-1-e');
       
       $desc.hide("fold", 500);
       $inner.unbind("dblclick");
       $inner.dblclick(showdesc);
+      $arrows.unbind("click");
+      $arrows.click(showdesc);
     };
     
     var showdesc = function () {
       if (myitem.description) {
-        var $arrows = $('div:first .arrows', '#todo_'+myitem.tid);
         $arrows.removeClass('ui-icon-triangle-1-e')
                .addClass('ui-icon-triangle-1-s');
 
         $desc.show("fold", 500);
         $inner.unbind("dblclick");
         $inner.dblclick(hidedesc);
+        $arrows.unbind("click");
+        $arrows.click(hidedesc);
       }
     };
     
     $inner.dblclick(showdesc);
-
+    $arrows.click(showdesc);
+    
     var check=$inner.find(".ui-icon-circle-check");
     var finishme=function() {
       myitem.finished=true;
