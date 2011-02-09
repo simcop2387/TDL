@@ -6,6 +6,8 @@ use Site::Utils;
 use Digest::HMAC qw(hmac_hex);
 use Digest::SHA qw(sha256);
 
+use Site::Session;
+
 # GET takes a username and gives back a challenge for that user
 # POST takes the HMAC of the users password hash and the challenge for authentication
 # this means that the password hash never gets transmitted and it can be verified and not have to worry about attacks (currently in 2011)
@@ -62,21 +64,10 @@ sub handle_GET {
   }
 }
 
-srand(time()); # TODO: not fully secure i know but at the moment it's just for testing
-my $chars = "0123456789ABCDEF";
-my $len = length($chars);
-sub make_session_key {
-  local $_;
-
-  for my $a (1..32) {
-    $_.=substr($chars, rand()*$len, 1)
-  }
-
-    return $_;
-}
-
 sub callhmac {
   my ($challenge, $passhash) = @_;
 # this may need a substr, need to investigate!
   return hmac_hex($passhash, $challenge, \&sha256);
 }
+
+1

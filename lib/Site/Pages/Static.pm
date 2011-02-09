@@ -1,6 +1,7 @@
 package Site::Pages::Static;
 use strictures 1;
 use base qw/ Site::Pages /;
+use Site::Utils;
 
 sub can_send {
     my ( $req ) = @_;

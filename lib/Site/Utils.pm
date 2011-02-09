@@ -6,7 +6,7 @@ use Site;
 
 require Exporter;
 our @ISA = qw/ Exporter /;
-our @EXPORT = qw/get_request_info get_template http_method_not_allowed http_redirect test_session extend_session/;
+our @EXPORT = qw/get_request_info get_template http_method_not_allowed http_redirect/;
 
 my $template = Template->new(
     {
@@ -47,29 +47,6 @@ sub http_redirect {
     $res->headers({ Location => $where });
     $res->body( "Permanently relocated to $where" );
     return $res;
-}
-
-###### Session helpers
-
-sub test_session {
-    my ( $req ) = @_;
-    my ( $res, $con, $uri ) = get_request_info( $req );
-
-    # TODO check the session
-    my $session = $req->cookies->{session};
-    my $r = $Site::heap{schema}->resultset('Session')->find({sessionkey => $session});
-
-    return 0 unless $r;
-    return 1;
-}
-
-#i might make this unneccesary, can't decide
-sub extend_session {
-  my ( $uid )= @_;
-  
-  # this will only work in POSTGRES. i don't care about being agnostic right now.
-  $Site::heap{schema}->resultset('Session')->find({uid => $uid})
-    ->update({expires => \[q[NOW() + interval '1 hour']]});
 }
 
 1;
