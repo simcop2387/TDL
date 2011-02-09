@@ -674,7 +674,7 @@ $(function() {
     $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().find(".ui-icon-close").click(function () {
       if (mylist.size == 0)
         delete_list(mylist, function() {
-          $tabs.tabs("remove", mylist.order-1);
+          $tabs.tabs("remove", mylist.order);
         });
     });
     setdroppable();
