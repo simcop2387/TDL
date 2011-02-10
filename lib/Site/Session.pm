@@ -29,10 +29,10 @@ sub test_session {
 sub extend_session {
   my ( $row )= @_;
 
-#  my $key = make_session_key(); # we'll rotate it now
+  my $key = make_session_key(); # we'll rotate it now
   # this will only work in POSTGRES. i don't care about being agnostic right now.
-  $row->update({expires => $PG_NOW});
-#  $res->cookies->{session} = $key; # tell the client about it
+  $row->update({expires => $PG_NOW, sessionkey => $key});
+  $res->cookies->{session} = {value => $key, path  => "/",}; # tell the client about it
 }
 
 sub create_session {
@@ -41,7 +41,7 @@ sub create_session {
   my $ip = $req->address();
   my $key = make_session_key(); # get a new key, they aren't tied to the user or anything
 
-  $res->cookies->{session} = $key; # should default to expire on browser close by default
+  $res->cookies->{session} = {value => $key, path  => "/",}; # tell the client about it
 
   if (my $r=$Site::heap{schema}->resultset('Session')->find({uid => $uid})) {
     $r->update({sessionkey=>$key, expires=>$PG_NOW, ip=>$ip});
