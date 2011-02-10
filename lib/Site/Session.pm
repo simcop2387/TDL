@@ -27,7 +27,7 @@ sub test_session {
 
 #i might make this unneccesary, can't decide
 sub extend_session {
-  my ( $row )= @_;
+  my ( $row, $res )= @_;
 
   my $key = make_session_key(); # we'll rotate it now
   # this will only work in POSTGRES. i don't care about being agnostic right now.

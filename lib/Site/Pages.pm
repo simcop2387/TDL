@@ -37,7 +37,7 @@ sub unroll_session {
   my $key = $self->req->cookies->{session};
   my $row = $self->schema->resultset('Session')->find({sessionkey=>$key});
 
-  extend_session($row);
+  extend_session($row, $self->res);
 
   return $row->get_column('uid');
 }
