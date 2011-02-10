@@ -29,10 +29,10 @@ sub test_session {
 sub extend_session {
   my ( $session, $res )= @_;
 
-  my $key = make_session_key(); # we'll rotate it now
+#  my $key = make_session_key(); # we'll rotate it now
   # this will only work in POSTGRES. i don't care about being agnostic right now.
-  $Site::heap{schema}->resultset('Session')->find({sessionkey => $session})->update({expires => $PG_NOW, sessionkey=>$key});
-  $res->cookies->{session} = $key; # tell the client about it
+  $Site::heap{schema}->resultset('Session')->find({sessionkey => $session})->update({expires => $PG_NOW});
+#  $res->cookies->{session} = $key; # tell the client about it
 }
 
 sub create_session {
