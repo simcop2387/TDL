@@ -35,6 +35,7 @@ Depedencies
 > this may be wrong; I haven't verified everything yet
 
 * strictures
+* SQL::Translator
 * indirect
 * Template
 * DBIx::Class
