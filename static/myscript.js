@@ -3,24 +3,6 @@
   var console = {log: function () {}};
 }*/
 
-/* This was written while really tired.  don't look at it */
-function hextobytearray(string) {
-  if (string.length % 2)
-    throw("must be even length");
-
-  var res = new Array();
-  var h2v = function (h) {return '0123456789abcdef'.index(h)}
-
-  while (string.length) {
-    var a=string.substr(0,1),
-        b=string.substr(1,1);
-    string=string.substr(2); /*remove the part we just used*/
-
-    res.push(a*16+b);
-  };
-  return res;
-};
-
 function reflow () {document.body.offsetWidth-=1; document.body.offsetWidth+=1}
 $(function() {
   var $tabs=$("#tabs");
@@ -252,7 +234,7 @@ $(function() {
     var showreg = false;
     var registerfunc = function () {
       if (!showreg) {
-        dialog.find("#regfields").hide().removeClass('hidden').show("slow");
+        dialog.find("#regfields").hide().removeClass('hidden').show("slide",{ direction: "up" },500);
         showreg = true;
         return;
       } else if ($username.val() == '' || $password.val() == '') {
@@ -284,6 +266,14 @@ $(function() {
       buttons: [{ text: "Login", click: loginfunc },
                 { text: "Register", click: registerfunc }],
       title: "Please login or register"
+    });
+
+    dialog.find("form").submit(function() {
+      if (showreg) {
+        registerfunc()
+      } else {
+        loginfunc()
+      }
     });
   }
 
@@ -506,7 +496,7 @@ $(function() {
     var $item = $('<li id="todo_'+myitem.tid+'"></li>');
     
     var $inner = $('<div class="ui-state-default ui-corner-all todo_inner" title="Drag me around"></div>');
-    var $desc = $('<pre class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+myitem.tid+'"></pre>');
+    var $desc = $('<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+myitem.tid+'"></div>');
 
     var $icon = $('<span class="arrows ui-icon" title="Expand description"></span>');
 
@@ -532,7 +522,7 @@ $(function() {
       $arrows.removeClass('ui-icon-triangle-1-s')
              .addClass('ui-icon-triangle-1-e');
       
-      $desc.hide("fold", 500);
+      $desc.hide("slide",{ direction: "up" },500);
       $inner.unbind("dblclick");
       $inner.dblclick(showdesc);
       $arrows.unbind("click");
@@ -544,7 +534,7 @@ $(function() {
         $arrows.removeClass('ui-icon-triangle-1-e')
                .addClass('ui-icon-triangle-1-s');
 
-        $desc.show("fold", 500);
+        $desc.show("slide",{ direction: "up" },500);
         $inner.unbind("dblclick");
         $inner.dblclick(hidedesc);
         $arrows.unbind("click");
