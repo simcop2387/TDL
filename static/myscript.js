@@ -5,7 +5,8 @@
 
 function reflow () {document.body.offsetWidth-=1; document.body.offsetWidth+=1}
 $(function() {
-  var $tabs=$("#tabs");
+  var $tabs;
+  var $_tabs=$("#_tabs");
   var $_tab=$("#_tab");
   var $hidden=$("#hidden");
   var $_add_dialog=$("#_add_todo");
@@ -154,6 +155,15 @@ $(function() {
   }
 
   function finish_login() {
+    
+    $tabs = $_tabs.clone();
+    
+    $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close' title='Remove list'>Remove List</span></li>"})
+         .addClass('ui-tabs-vertical ui-helper-clearfix')
+         .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
+    
+    $tabs.removeClass('ui-widget-content');
+    $(".content").html("").append($tabs);
     make_listbutt();
     get_data();
     reflow();
@@ -191,21 +201,22 @@ $(function() {
   *****************************************************/
 
   function login_dialog() {
-    var dialog = $_login_dialog.clone();
-    dialog.attr("id", null); // clear the id
+    //var dialog = $_login_dialog.clone();
+    var dialog = $("#loginform");
     var loggedin=0; // used to prevent the user from just closing the box because i can't get the damned thing to remove the X
-    $("body").append(dialog);
+    //$("body").append(dialog);
 
     var $username = dialog.find("#username");
     var $password = dialog.find("#password");
     var $passrepeat = dialog.find("#repeated");
     var $emailaddr = dialog.find("#email");
+    var $error = dialog.find("#loginerror");
 
     var loginfunc = function () {
-      dialog.find('.error').hide();
+      $error.hide();
 
       if ($username.val() == '' || $password.val() == '') {
-        dialog.find('.error').text('Invalid username or password').show('slow');
+        $error.text('Invalid username or password').show('slow');
         return;
       };
       
@@ -227,14 +238,14 @@ $(function() {
                 });
       },
       function (data) {
-        dialog.find('.error').text('Invalid username or password').show('slow');
+        $error.text('Invalid username or password').show('slow');
       });
     }
 
     var showreg = false;
     var registerfunc = function () {
       if (!showreg) {
-        dialog.find("#regfields").hide().removeClass('hidden').show("slide",{ direction: "up" },500);
+        $("#regfields").hide().removeClass('hidden').show("slide",{ direction: "up" },500);
         showreg = true;
         return;
       } else if ($username.val() == '' || $password.val() == '') {
@@ -245,7 +256,7 @@ $(function() {
         return;
       }
       
-      dialog.find('.error').hide('slow');
+      $error.hide('slow');
 
       post_to("/ajaj/register",
               {"email": $emailaddr.val(), "username": $username.val(), "password": callhmac(hashpass($username.val()), hashpass($password.val()))},
@@ -259,14 +270,9 @@ $(function() {
               }
       );
     };
-    
-    dialog.dialog({
-      close: function() {if (loggedin) dialog.remove(); else login_dialog()},
-      modal: true,
-      buttons: [{ text: "Login", click: loginfunc },
-                { text: "Register", click: registerfunc }],
-      title: "Please login or register"
-    });
+
+    $("#loginbutt").button().click(loginfunc);
+    $("#registerbutt").button().click(registerfunc);
 
     dialog.find("form").submit(function() {
       if (showreg) {
@@ -699,11 +705,6 @@ $(function() {
   }
   
   /* init code */
-  $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close' title='Remove list'>Remove List</span></li>"})
-       .addClass('ui-tabs-vertical ui-helper-clearfix')
-       .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
-
   $("#mainprogress").hide().progressbar({value: 0});
-  $tabs.removeClass('ui-widget-content');
-  $tabs.oneTime(250, function() {login_dialog()});
+  $_tabs.oneTime(250, function() {login_dialog()});
 });

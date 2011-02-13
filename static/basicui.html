@@ -29,31 +29,32 @@
   </div>
 </div>
 
- <div class="content">
-   <div id="tabs" class="tabs-side">
-     <ul>
-     </ul>
-   </div>
- </div>
+<div class="content">
+  <div id="loginform" title="Log-in to TDL">
+    <form action="#">
+    <span class="error hidden">Invalid Username or Password</span>
+    <br />
+    <span class="dfield">Username:</span>
+    <input id="username" />
+    <br />
+    <span class="dfield">Password:</span>
+    <input id="password" type="password"/>
+    <br />
+    <div class="hidden" id="regfields">
+      <span class="dfield">Repeat:</span><input id="repeated" type="password"/><br /><br />
+      <span class="dfield">Email:</span><input id="email" />
+     </div>
+     <input type="submit" id="loginbutt" value="Login"/>
+     <button id="registerbutt">Register</button>
+    </form>
+  </div>
+</div>
 
  <noscript>This site will not work without javascript.  please enable it</noscript>
 
 <div class="hidden" id="hidden">
   <!-- dialog boxes! -->
   <div id="_useradmin" title="Your account">
-  </div>
-  
-  <div id="_login" title="Log-in to TDL">
-    <form action="#">
-      <span class="error hidden">Invalid Username or Password</span><br />
-      <span class="dfield">Username:</span><input id="username" /><br /><br />
-      <span class="dfield">Password:</span><input id="password" type="password"/><br />
-      <div class="hidden" id="regfields">
-        <span class="dfield">Repeat:</span><input id="repeated" type="password"/><br /><br />
-        <span class="dfield">Email:</span><input id="email" />
-      </div>
-      <input type="submit" class="hidden"/>
-    </form>
   </div>
 
   <div id="_add_list" title="Add a list">
@@ -63,7 +64,7 @@
   </div>
 
   <div id="_add_todo" title="Add a todo">
-    <form>
+    <form action="#">
       <span class="dfield">Title:</span><input class="title" type="text" /><br />
       <span class="dfield">Due date:</span><input class="datepicker" type="text" /><hr />
       <span class="dfield">Description</span><br /><textarea class="description" rows="10"></textarea>
@@ -76,6 +77,11 @@
     <ul class="connectedSortable ui-helper-reset">
     </ul>
   </div>
+  <div id="_tabs" class="tabs-side">
+    <ul>
+    </ul>
+  </div>
+  
 </div>
 
 </body>
