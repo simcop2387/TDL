@@ -46,4 +46,6 @@ ul.menu li {display: inline-block; padding-left: 1em; padding-right: 1em; border
 #mainprogress {position: relative; display: block; margin-left: auto; margin-right: auto; margin-top: 0.5em; height: 1.5em; width: 40em; z-index: -1 !important;}
 
 /*login form*/
-#loginform {border: 1px solid #E0E8EF; float: right; padding: 0.75em}
+#loginform {border: 1px solid #E0E8EF; float: right; padding: 0.75em; margin: 0.75em}
+#loginform .ui-button {float: right; margin: 0.5em;}
+#loginform input.ui-button {padding-top: 6px; padding-bottom: 6px;} /* corrects the height difference on my machine, need to check if it does on others, might need an em measurment */

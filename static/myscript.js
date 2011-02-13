@@ -222,7 +222,7 @@ $(function() {
       
       var username = $username.val();
       var passhash = callhmac(hashpass($username.val()), hashpass($password.val()));
-      console.log(passhash);
+      //console.log(passhash);
 
       get_login_challenge(username, function (data) {
         var hmac=callhmac(data.challenge, passhash);
@@ -249,10 +249,10 @@ $(function() {
         showreg = true;
         return;
       } else if ($username.val() == '' || $password.val() == '') {
-        dialog.find('.error').text('Invalid username or password').show('slow');
+        $error.text('Invalid username or password').show('slow');
         return;
       } else if ($passrepeat.val() != $password.val()) {
-        dialog.find('.error').text('Passwords do not match').show('slow');
+        $error.text('Passwords do not match').show('slow');
         return;
       }
       
