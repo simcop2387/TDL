@@ -10,8 +10,11 @@
   <script src="/static/jssha256.js" type="text/javascript"></script>
   <script src="/static/myscript.js" type="text/javascript"></script>
 
+  <link rel="stylesheet" href='http://fonts.googleapis.com/css?family=Radley|Orbitron:500' type='text/css'>
   <link rel="stylesheet" href="/static/jq/css/custom-theme/jquery-ui-1.8.9.custom.css" type="text/css" />
   <link rel="stylesheet" href="/static/style.css" type="text/css" />
+
+  <link rel="shortcut icon" href="/favicon.png" />
 
   <title>Things Done Later</title>
 </head>
@@ -29,37 +32,69 @@
   </div>
 </div>
 
- <div class="content">
-   <div id="tabs" class="tabs-side">
-     <ul>
-     </ul>
-   </div>
- </div>
+<div class="content">
+  <div id="loginform" title="Log-in to TDL">
+    <form action="#">
+    <span class="error hidden">Invalid Username or Password</span>
+    <br />
+    <span class="dfield">Username:</span>
+    <input id="username" />
+    <br />
+    <span class="dfield">Password:</span>
+    <input id="password" type="password"/>
+    <br />
+    <div class="hidden" id="regfields">
+      <span class="dfield">Repeat:</span><input id="repeated" type="password"/><br /><br />
+      <span class="dfield">Email:</span><input id="email" />
+     </div>
+     <button id="registerbutt">Register</button>
+     <input type="submit" id="loginbutt" value="Login"/>
+    </form>
+  </div>
+  <span class="landing">
+    <h1>What is Things Done Later?</h1>
+    
+    <p>Things Done Later is a nice and simple ToDo List webapp.  Designed to be easy and intuitive to use, all elements are sortable.  Organizing your lists is as easy as clicking your mouse, letting you keep your priorities at the top of the list to help you decide what to do and when.</p>
+    
+    <h1>Will you sell my email address?</h1>
+    
+    <p>No, your email address will only ever be used for sending you reminders and resetting your password.  I do however reserve the right to use them to announce new features on the site.</p>
+    
+    <h1>Advertisements?</h1>
+    
+    <p>I don't intend to put any advertisements on this at all.  Since you never see more than one page here by design most advertisements would not very well to begin with.</p>
+    
+    <h1>Plans for the future</h1>
+
+    <p>
+      <ul>
+        <li>A real mobile interface &mdash; This might be via a mobile.thingsdonelater.com or via an app on the phone, haven't decided or investigated heavily yet.</li>
+        <li>Twitter and email reminders &mdash; So that you can get reminders about important things you need to do</li>
+        <li> Export of data &mdash; Once I find something suitable export will be supported.</li>
+        </ul>
+      </p>
+  </span>
+</div>
 
  <noscript>This site will not work without javascript.  please enable it</noscript>
 
 <div class="hidden" id="hidden">
   <!-- dialog boxes! -->
-  <div id="_login" title="">
-    <form>
-      <span class="error hidden">Invalid Username or Password</span><br />
-      <span class="dfield">Username:</span><input id="username" /><br />
-      <span class="dfield">Password:</span><input id="password" type="password"/><br />
-      <div class="hidden" id="regfields">
-        <span class="dfield">Repeat Password:</span><input id="repeated" type="password"/><br />
-        <span class="dfield">Email:</span><input id="email" />
-      </div>
-    </span>
+  <div id="_useradmin" title="Your account">
   </div>
 
   <div id="_add_list" title="Add a list">
-    <span class="dfield">Title:</span><input class="title" type="text" />
+    <form action="#">
+      <span class="dfield">Title:</span><input class="title" type="text" />
+    </form>
   </div>
 
   <div id="_add_todo" title="Add a todo">
-    <span class="dfield">Title:</span><input class="title" type="text" /><br />
-    <span class="dfield">Due date:</span><input class="datepicker" type="text" /><hr />
-    <span class="dfield">Description</span><br /><textarea class="description" rows="10"></textarea>
+    <form action="#">
+      <span class="dfield">Title:</span><input class="title" type="text" /><br />
+      <span class="dfield">Due date:</span><input class="datepicker" type="text" /><hr />
+      <span class="dfield">Description</span><br /><textarea class="description" rows="10"></textarea>
+    </form>
   </div>
   <!-- premade tab -->
 
@@ -68,6 +103,11 @@
     <ul class="connectedSortable ui-helper-reset">
     </ul>
   </div>
+  <div id="_tabs" class="tabs-side">
+    <ul>
+    </ul>
+  </div>
+  
 </div>
 
 </body>
