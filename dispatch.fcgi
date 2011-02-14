@@ -54,6 +54,7 @@ $Site::heap{'config'} = $config;
 my $app = Site::Dispatch->new(
     [
         { url => qr|^/$|,        package => "Site::Pages::Main" }, # main site, really just a version of static but without the filename
+        { url => qr|^/favicon\.|, package => "Site::Pages::Static", test => \&Site::Pages::Static::can_send }, # let it work for any format
         { url => qr|^/static/|, package => "Site::Pages::Static", test => \&Site::Pages::Static::can_send  },
         # misc methods
         { url => qr|^/ajaj/login|,   package => "Site::Pages::AJAJ::Login"   },
