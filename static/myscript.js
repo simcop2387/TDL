@@ -440,7 +440,7 @@ $(function() {
     if (mylist.size == 0) { // don't try to divide by 0
       var $parent = $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent();
       $parent.progressbar("value", 0);
-      $parent.find('.progress_text').text(""); // we have nothing in the list
+      //$parent.find('.progress_text').text(""); // we have nothing in the list
     } else {
       var $parent = $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent();
       var lid=mylist.lid; // who are we checking?
@@ -454,7 +454,7 @@ $(function() {
       });
       var p=100 * n/mylist.size;
       $parent.progressbar("value", p);
-      $parent.find('.progress_text').text(""+Math.floor(p)+"%");
+      //$parent.find('.progress_text').text(""+Math.floor(p)+"%");
     }
 
     update_master_progress();
