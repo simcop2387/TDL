@@ -274,13 +274,21 @@ $(function() {
     $("#loginbutt").button().click(loginfunc);
     $("#registerbutt").button().click(registerfunc);
 
-    dialog.find("form").submit(function() {
-      if (showreg) {
-        registerfunc()
-      } else {
-        loginfunc()
+    var enterfunc=function(e) {
+      if(e.which == 13){
+        if (showreg) {
+          registerfunc()
+        } else {
+          loginfunc()
+        }
+        return;
       }
-    });
+    };
+
+    $username.keypress(enterfunc);
+    $password.keypress(enterfunc);
+    $passrepeat.keypress(enterfunc);
+    $emailaddr.keypress(enterfunc);
   }
 
   function add_list_dialog() {
