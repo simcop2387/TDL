@@ -35,7 +35,7 @@ use Site::Pages::Main;
 use Site::Pages::Static;
 
 ####### Conf/DB Setup ########
-my $config = Site::Config->load_config( 'conf/development.yaml' );
+my $config = Site::Config->load_config( 'conf/production.yaml' );
 
 my $schema = Site::Schema->connect( 
     "dbi:Pg:host=" . $config->{database}->{hostname} .
