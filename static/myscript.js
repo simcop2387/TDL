@@ -1,7 +1,7 @@
 /* work around old browsers that don't have a console */
-/*if (console == null) {
+if (console == null) {
   var console = {log: function () {}};
-}*/
+}
 
 $(function() {
   var $tabs;
