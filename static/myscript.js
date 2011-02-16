@@ -3,7 +3,6 @@
   var console = {log: function () {}};
 }*/
 
-function reflow () {document.body.offsetWidth-=1; document.body.offsetWidth+=1}
 $(function() {
   var $tabs;
   var $_tabs=$("#_tabs");
@@ -12,6 +11,10 @@ $(function() {
   var $_add_dialog=$("#_add_todo");
   var $_add_list_dialog=$("#_add_list");
   var $_login_dialog=$("#_login");
+  var $_password_dialog=$("#_password_dialog");
+  var $_email_dialog=$("#_email_dialog");
+  var $_about_dialog=$("#_about_dialog");
+  //var $_password_dialog=$("#_password_dialog");
   
   var lists=new Array();
   var items=new Array();
@@ -19,6 +22,7 @@ $(function() {
   var list_count=0;
   var alive_todo=0;
   var finished_todo=0;
+  var username=null; // needed for changing it later!
 
   /****INIT ONLY FUNC*****/
   function set_ids(list, item) {
@@ -48,7 +52,6 @@ $(function() {
         console.log("ORDER ERROR: ", data.message);
       }
     });
-    reflow();
   }
 
   function update_list(mylist) {
@@ -78,7 +81,6 @@ $(function() {
         console.log("ORDER ERROR: ", data.message);
       }
     }); // we're going to "silently" ignore errors here due to the fact that it only puts things out of sync and all data is still around
-    reflow();
   }
 
   function change_list($item, listelem) {
@@ -100,7 +102,6 @@ $(function() {
     // send order of old list and new list
     update_list(lists["tab_"+oldlist]);
     update_list(lists[listelem]);
-    reflow();
   }
 
   function new_list(mylist, callback, errorback) {
@@ -113,13 +114,11 @@ $(function() {
                 errorback(data)
               }
             });
-    reflow();
   }
 
   function delete_list(mylist, succeed) {
     /* delete a todo */
     post_to('/ajaj/list/delete', mylist, succeed); // TODO we don't need no stinking confirmation
-    reflow();
   }
   
   function change_todo(myitem, callback, errorback) {
@@ -133,7 +132,6 @@ $(function() {
         errorback(data)
       }
     });
-    reflow();
   }
 
   function new_todo(mylist, callback, errorback) {
@@ -151,7 +149,6 @@ $(function() {
   function delete_todo(myitem, succeed) {
     /* delete a todo */
     post_to('/ajaj/todo/delete', myitem, succeed); // TODO we don't need no stinking confirmation
-    reflow();
   }
 
   function finish_login() {
@@ -161,12 +158,15 @@ $(function() {
     $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close' title='Remove list'>Remove List</span></li>"})
          .addClass('ui-tabs-vertical ui-helper-clearfix')
          .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
-    
+
     $tabs.removeClass('ui-widget-content');
     $(".content").html("").append($tabs);
     make_listbutt();
     get_data();
-    reflow();
+
+    $("#chemail").click(email_dialog);
+    $("#chpass").click(password_dialog);
+    $("#about").click(about_dialog);
   }
 
   function get_login_challenge(username, success, error) {
@@ -200,7 +200,53 @@ $(function() {
   * UI callbacks - doesn't send updates, just ui stuff *
   *****************************************************/
 
-  function login_dialog() {
+  function about_dialog() {
+    $_about_dialog.dialog({width: 400});
+  }
+
+  function password_dialog() {
+    var dialog=$_password_dialog.clone();
+    var $newpass=dialog.find(".newpass");
+    var $reppass=dialog.find(".reppass");
+    var $error = dialog.find(".error");
+    $error.hide();
+
+    var changefunc = function () {
+      if ($newpass.val() == $reppass.val() && $newpass.val() != '') {
+        post_to("/ajaj/user/change", {password: hashpass(username, $newpass.val())}, function() {dialog.dialog("close")});
+      } else {
+        $error.text('Passwords do not match').show('slow');
+      }
+    };
+    
+    dialog.dialog({width: 350,
+      buttons: [
+        {text: "Save Changes", click: changefunc},
+        {text: "Cancel", click: function() {dialog.dialog("close")}}
+      ],
+      close: function() {dialog.remove()}
+    });
+  }
+
+  function email_dialog() {
+    var dialog=$_email_dialog.clone();
+    var $email=dialog.find(".emailaddr");
+
+    // should do basic client side verification here, at the moment since i don't use them i don't care
+    var changefunc = function(data) {
+      post_to("/ajaj/user/change", {email: $email.val()}, function() {dialog.dialog("close")})
+    };
+    
+    dialog.dialog({width: 350,
+      buttons: [
+        {text: "Save Changes", click: changefunc},
+        {text: "Cancel", click: function() {dialog.dialog("close")}}
+      ],
+      close: function() {dialog.remove()}
+    });
+  }
+
+  function login_dialog() { // no longer really a dialog
     //var dialog = $_login_dialog.clone();
     var dialog = $("#loginform");
     var loggedin=0; // used to prevent the user from just closing the box because i can't get the damned thing to remove the X
@@ -210,7 +256,7 @@ $(function() {
     var $password = dialog.find("#password");
     var $passrepeat = dialog.find("#repeated");
     var $emailaddr = dialog.find("#email");
-    var $error = dialog.find("#loginerror");
+    var $error = dialog.find(".error");
 
     var loginfunc = function () {
       $error.hide();
@@ -220,8 +266,8 @@ $(function() {
         return;
       };
       
-      var username = $username.val();
-      var passhash = callhmac(hashpass($username.val()), hashpass($password.val()));
+      /*var*/ username = $username.val();
+      var passhash = hashpass($username.val(), $password.val());
       //console.log(passhash);
 
       get_login_challenge(username, function (data) {
@@ -255,11 +301,12 @@ $(function() {
         $error.text('Passwords do not match').show('slow');
         return;
       }
-      
+
+      /*var*/ username = $username.val();
       $error.hide('slow');
 
       post_to("/ajaj/register",
-              {"email": $emailaddr.val(), "username": $username.val(), "password": callhmac(hashpass($username.val()), hashpass($password.val()))},
+              {"email": $emailaddr.val(), "username": $username.val(), "password": hashpass($username.val(), $password.val())},
               function (data) {
                 if (data.success) {
                   loggedin=1;
@@ -400,8 +447,10 @@ $(function() {
   /**********************************************
   * Misc. functions                             *
   **********************************************/
-  function hashpass(password) {
-    return SHA256_hash(password);
+  function hashpass(username, password) {
+    /* I know that using hmac for salting isn't really any better than concatenation.  i know i should be using PKDBF2 here but i haven't found a library i like for javascript yet*/
+    /* and using the username as a salt may have less entropy but it really isn't going to be that much of a problem since someone can always get the salt from the system anyway if i do it "properly"*/
+    return callhmac(SHA256_hash(username), SHA256_hash(password));
   }
 
   function callhmac(challenge, passhash) {
@@ -714,5 +763,5 @@ $(function() {
   
   /* init code */
   $("#mainprogress").hide().progressbar({value: 0});
-  $_tabs.oneTime(250, function() {login_dialog()});
+  login_dialog();
 });

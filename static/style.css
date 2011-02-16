@@ -1,4 +1,4 @@
-body{ padding: 0; margin: 0; font-size: 75%; background-color: #F8FDFF; }
+body{font-size: 75%; background-color: #F8FDFF; }
 .connectedSortable { list-style-type: none; margin: 0 auto 0 auto; padding: 0; }
 .connectedSortable li .todo_inner {margin: 3px; padding: 0.3em; padding-left: 1.3em; line-height: 1.5em; }
 .connectedSortable li .todo_inner .arrows { float: left; margin-left: -1.3em; }
@@ -33,17 +33,17 @@ body{ padding: 0; margin: 0; font-size: 75%; background-color: #F8FDFF; }
 .ui-dialog { margin:0 auto; }
 
 /* for better progress bars */
-.ui-progressbar-value {
-  background-image: url("/static/jq/css/custom-theme/images/ui-bg_inset-soft_100_deedf7_1x100_green.png") !important;
-}
+.ui-progressbar-value { background-image: url("/static/jq/css/custom-theme/images/ui-bg_inset-soft_100_deedf7_1x100_green.png") !important; }
 
 /* header */
 .header {margin: 0; height: 3em; background-color: #F8FDFF; width: 100%; position: absolute; top:0; border-bottom: 1px solid #F0F8FF; z-index:1;}
 .content {padding-left: 1em; padding-right: 1em; padding-top: 4em;}
 #sitetitle {display: block; float: left; font-size: 2em;margin-top:0.25em; padding-left: 1em; font-family: 'Orbitron', sans-serif}
-ul.menu {float: right; margin-right: 3em; border-right: 1px solid black;}
-ul.menu li {display: inline-block; padding-left: 1em; padding-right: 1em; border-left: 1px solid black;}
-#mainprogress {position: relative; display: block; margin-left: auto; margin-right: auto; margin-top: 0.5em; height: 1.5em; width: 40em; z-index: -1 !important;}
+ul.menu {float: right; margin-top: 1em; margin-right: 3em; border-right: 1px solid black;}
+ul.menu li {display: inline-block; padding-left: 1em; padding-right: 1em; border-left: 1px solid black; cursor: pointer}
+ul.menu li:hover {background-color: #D8DDDF;}
+#mainprogress {position: relative; display: block; margin-left: auto; margin-right: auto; margin-top: 0.5em; height: 1.5em; width: 30em; z-index: -1 !important;}
+.paypal {float: right; margin-top: 0.75em;}
 
 /*login form*/
 #loginform {border: 1px solid #E0E8EF; float: right; padding: 0.75em; margin: 0.75em}
@@ -51,7 +51,10 @@ ul.menu li {display: inline-block; padding-left: 1em; padding-right: 1em; border
 #loginform input.ui-button {padding-top: 6px; padding-bottom: 6px;} /* corrects the height difference on my machine, need to check if it does on others, might need an em measurment */
 
 /*landing*/
+.landing {font-size: 1.2em; line-height: 1.3em; font-family: sans-serif; }
+.landing h1 {font-family: 'Radley', serif; font-weight: normal; font-size: 2.5em; line-height: 1em;}
+.landing p {padding-left: 0.9em; text-indent: 1em; margin-bottom: 2em;}
+.landing ul {  list-style-type: disc; list-style-position: inside; margin-left: 0.9em; }
 
-.landing h1 {font-family: 'Radley', serif; font-weight: normal; font-size: 2.5em;}
-.landing p {padding-left: 0.9em; text-indent: 1em;}
-.landing ul li {margin-bottom: 0.5em;}
+/*dialog tweaks*/
+.passworddialog .dfield {width: 8.5em; text-align: right; display: inline-block; padding-right: 0.5em}

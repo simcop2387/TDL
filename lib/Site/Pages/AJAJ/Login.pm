@@ -40,6 +40,9 @@ sub handle_POST {
   }
 }
 
+# SECURITY FLAW
+# This should actually always return a challenge for non-existant users rather than a "failure"
+
 sub handle_GET {
   my ( $self ) = @_;
   my ( $data ) = $self->get_json();
