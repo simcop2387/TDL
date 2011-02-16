@@ -10,6 +10,7 @@
   <script src="/static/jssha256.js" type="text/javascript"></script>
   <script src="/static/myscript.js" type="text/javascript"></script>
 
+  <link rel="stylesheet" href="/static/reset.css" type="text/css" />
   <link rel="stylesheet" href='http://fonts.googleapis.com/css?family=Radley|Orbitron:500' type='text/css'>
   <link rel="stylesheet" href="/static/jq/css/custom-theme/jquery-ui-1.8.9.custom.css" type="text/css" />
   <link rel="stylesheet" href="/static/style.css" type="text/css" />
@@ -24,10 +25,20 @@
 <div class="header">
   <div id="sitetitle">Things Done Later</div>
   <ul class="menu">
-    <li>My Account</li>
-    <li>About</li>
-    <li>Help</li>
+    <li id="chemail">Change Email</li>
+    <li id="chpass">Change Password</li>
+    <li id="about">About</li>
   </ul>
+
+  <div class="paypal">
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+      <input type="hidden" name="cmd" value="_s-xclick" />
+      <input type="hidden" name="hosted_button_id" value="4WCF6AYK8ZSMQ" />
+      <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!" />
+      <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
+    </form>
+  </div>
+
   <div id="mainprogress">
   </div>
 </div>
@@ -57,22 +68,31 @@
     <h1>Advertisements?</h1>
     <p>I don't intend to put any advertisements on this at all.  Since you never see more than one page here by design most advertisements would not very well to begin with.</p>
     <h1>Plans for the future</h1>
-
-    <p>
       <ul>
         <li>A real mobile interface &mdash; This might be via a mobile.thingsdonelater.com or via an app on the phone, haven't decided or investigated heavily yet.</li>
         <li>Twitter and email reminders &mdash; So that you can get reminders about important things you need to do</li>
-        <li> Export of data &mdash; Once I find something suitable export will be supported.</li>
-        </ul>
-      </p>
+        <li>Export of data &mdash; Once I find something suitable export will be supported</li>
+        <li>Add multiple modes of lists, e.g. Kanban style lists</li>
+      </ul>
   </span>
 </div>
 
  <noscript>This site will not work without javascript.  please enable it</noscript>
 
 <div class="hidden" id="hidden">
+  <!-- about dialog -->
+  <div id="_about_dialog" title="About Things Done Later">
+    Shit here about the project.
+  </div>
   <!-- dialog boxes! -->
-  <div id="_useradmin" title="Your account">
+  <div id="_password_dialog" title="Change your password" class="passworddialog">
+    <span class="error hidden">Invalid Username or Password</span><br />
+    <span class="dfield">New Password: </span><input class="newpass" type="password" /><br />
+    <span class="dfield">Repeat Password: </span><input class="reppass" type="password" /><br />
+  </div>
+
+  <div id="_email_dialog" title="Change your email" class="emaildialog">
+    <span class="dfield">Email Address: </span><input class="emailaddr" /><br />
   </div>
 
   <div id="_add_list" title="Add a list">

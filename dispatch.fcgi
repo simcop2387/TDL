@@ -29,6 +29,7 @@ use Site::Pages::AJAJ::Todos::Delete;
 use Site::Pages::AJAJ::Login;
 use Site::Pages::AJAJ::GetData;
 use Site::Pages::AJAJ::Register;
+use Site::Pages::AJAJ::User::Change;
 
 use Site::Pages::404;
 use Site::Pages::Main;
@@ -61,6 +62,7 @@ my $app = Site::Dispatch->new(
         { url => qr|^/ajaj/logout$|,  package => "Site::Pages::AJAJ::Logout",  test => \&Site::Session::test_session },
         { url => qr|^/ajaj/getdata$|, package => "Site::Pages::AJAJ::GetData", test => \&Site::Session::test_session },
         { url => qr|^/ajaj/register$|,package => "Site::Pages::AJAJ::Register" },
+        { url => qr|^/ajaj/user/change$|,package => "Site::Pages::AJAJ::User::Change", test => \&Site::Session::test_session },
         # list manipulation pages
         { url => qr|^/ajaj/list/new$|,    package => "Site::Pages::AJAJ::Lists::New",    test => \&Site::Session::test_session   },
         { url => qr|^/ajaj/list/edit$|,   package => "Site::Pages::AJAJ::Lists::Edit",   test => \&Site::Session::test_session   },
