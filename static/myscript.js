@@ -19,7 +19,7 @@ $(function() {
   var lists=new Array();
   var items=new Array();
 
-  var list_count=0;
+  var master_list_count=0;
   var alive_todo=0;
   var finished_todo=0;
   var username=null; // needed for changing it later!
@@ -28,6 +28,176 @@ $(function() {
   function set_ids(list, item) {
     lists_id = list; items_id = item;
   }
+
+/***********************
+ *Main List type Class *
+ ***********************/
+
+function MainList(title, lid, order) {
+  this.title=title;
+  this.lid=null;
+  this.size=0;
+  this.order=master_list_count;
+
+  console.log("ListConstructor: title="+title+" lid="+lid+" order="+order);
+  var _list=this; // does this suck horribly in javascript?
+  
+  var _make_list = function () {
+    master_list_count++;
+
+    lists["tab_"+_list.lid]=_list; // TODO this should be done externally!!!
+
+    var newtab=$_tab.clone();
+    var sortable=newtab.find("ul");
+
+    newtab.attr("id","tab_"+_list.lid);
+    newtab.find('.additem').button().click(function(){
+      /* they asked to make a new item! */
+      _list.addtask(); // call the dialog method here
+      $(this).blur();
+    });
+
+    sortable.sortable({
+      update: function(event, ui) {
+        _list.update();
+      }
+    });
+
+    sortable.disableSelection();
+
+    // TODO This code needs to be moved to a better OO style, somewhere else.  e.g. i shouldn't be touching $tabs myself
+    $tabs.prepend(newtab);
+    $tabs.tabs("add", "#tab_"+_list.lid, _list.title);
+
+    $tabs.find('a[href="#tab_'+_list.lid+'"]').parent().progressbar({value: 0});
+
+    $tabs.find('a[href="#tab_'+_list.lid+'"]').parent().find(".ui-icon-close").click(function () {
+      if (_list.size == 0)
+        _list.delete();
+    });
+
+    setdroppable();
+    $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
+    $tabs.find(".ui-tabs-nav").sortable("refresh");
+  }
+  
+  if (lid === null) {
+    post_to('/ajaj/list/new', this,
+      function (data) {
+        console.log($.toJSON(data));
+        if (data.success) {
+          this.lid = data.lid;
+          _make_list();
+        }});
+  } else {
+    this.lid=lid;
+    this.order=order;
+    _make_list();
+  }
+};
+
+MainList.prototype.addtask = function() {
+  var dialog = $_add_dialog.clone();
+  var _list = this; // save an alias of the object
+
+  dialog.attr("id", null); // clear the id
+  $("body").append(dialog);
+
+  dialog.dialog({
+    close: function() {
+      dialog.remove();
+    },
+    buttons: [
+      {text: "Save Changes",
+      click: function() {
+        var title = dialog.find(".title").val();
+        var date = dialog.find(".datepicker").val();
+        var description = dialog.find(".description").val();
+
+        if (!checktitle(title)) {
+          dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+        } else {
+          make_todo(_list.lid, title, date, description);
+          dialog.dialog("close");
+        }
+        }},
+      {text: "Cancel", click: function(){dialog.dialog("close")}}
+    ]});
+
+  dialog.find(".datepicker").datepicker();
+}
+
+MainList.prototype.delete = function() {
+  post_to('/ajaj/list/delete', this, function () {
+    $tabs.tabs("remove", this.order);
+  }); // TODO we don't need no stinking confirmation
+};
+
+MainList.prototype.update = function() {
+  //this was left over from the spaghetti code, never understood why it was happening.  shouldn't need it then or now.  will try removing it later
+  if (this == null || this.lid == null) {
+    console.log("WHO ARE YOU?"); // why do i need this? something down below triggers an update that causes this to shit itself. fun
+    return;
+  }
+
+  // the object should be able to cache this later, making it faster
+  var what=$("#tab_"+this.lid+" li");
+  var arr = new Array();
+
+  var i=0;
+  what.each(function() {
+    var id=$(this).attr("id");
+      //console.log("ARG: ", $(this).attr("id"));
+    items[id].order=i++;
+    arr.push(items[id].tid);
+  });
+
+  this.size=i;
+  this.update_progress();
+
+  /* TODO fuck i don't understand my own code... why doesn't this require a list?
+     I suspect because I just ignore them in the backend... */
+  /* send ajax post for mylist and arr */
+  post_to('/ajaj/todo/order', {todos: arr}, function(data) {
+    if (!data.success) {
+      console.log("ORDER ERROR: ", data.message);
+    }
+  }); // we're going to "silently" ignore errors here due to the fact that it only puts things out of sync and all data is still around
+};
+
+MainList.prototype.update_progress = function () {
+  console.log("inprogress", $.toJSON(this));
+  // this was left from the old sphagetti code, shouldn't need it
+  if (this == null) // i've got a bug or two in here and i don't understand them
+    return;
+
+  if (this.size == 0) { // don't try to divide by 0
+    var $parent = $tabs.find('a[href="#tab_'+this.lid+'"]').parent();
+    $parent.progressbar("value", 0);
+    //$parent.find('.progress_text').text(""); // we have nothing in the list
+  } else {
+    var $parent = $tabs.find('a[href="#tab_'+this.lid+'"]').parent();
+    var what=$("#tab_"+this.lid+" li");
+
+    var n=0;
+    what.each(function() {
+      var id=$(this).attr("id");
+      if (items[id].finished)
+      n++;
+    });
+
+    var p=100 * n/this.size;
+    $parent.progressbar("value", p);
+    //$parent.find('.progress_text').text(""+Math.floor(p)+"%");
+  }
+
+  update_master_progress();
+};
+
+/***************
+ * END Main List Class
+ */
+
 
   /**********************************************
   * Event callbacks                             *
@@ -54,35 +224,6 @@ $(function() {
     });
   }
 
-  function update_list(mylist) {
-    /* update the order of a single list */
-    if (mylist == null || mylist.lid == null) {
-      console.log("WHO ARE YOU?"); // why do i need this? something down below triggers an update that causes this to shit itself. fun
-      return; 
-    }
-    var lid=mylist.lid; // who are we checking?
-    var what=$("#tab_"+lid+" li");
-    var arr = new Array();
-
-    var i=0;
-    what.each(function() {
-      var id=$(this).attr("id");
-      //console.log("ARG: ", $(this).attr("id"));
-      items[id].order=i++;
-      arr.push(items[id].tid);
-    });
-
-    mylist.size=i;
-    update_list_progress(mylist);
-    
-    /* send ajax post for mylist and arr */
-    post_to('/ajaj/todo/order', {todos: arr}, function(data) {
-      if (!data.success) {
-        console.log("ORDER ERROR: ", data.message);
-      }
-    }); // we're going to "silently" ignore errors here due to the fact that it only puts things out of sync and all data is still around
-  }
-
   function change_list($item, listelem) {
     if ($item == null || listelem == null)
       return;
@@ -100,30 +241,13 @@ $(function() {
     // send item update, with new list
     change_todo(items[item], function() {}, function () {});
     // send order of old list and new list
-    update_list(lists["tab_"+oldlist]);
-    update_list(lists[listelem]);
-  }
-
-  function new_list(mylist, callback, errorback) {
-    /* send new list */
-    post_to('/ajaj/list/new', mylist,
-            function (data) {
-              if (data.success) {
-                callback(data)
-              } else {
-                errorback(data)
-              }
-            });
-  }
-
-  function delete_list(mylist, succeed) {
-    /* delete a todo */
-    post_to('/ajaj/list/delete', mylist, succeed); // TODO we don't need no stinking confirmation
+    lists["tab_"+oldlist].update();
+    lists[listelem].update();
   }
   
   function change_todo(myitem, callback, errorback) {
     /* send the todo finish or unfinish event */
-    update_list_progress(lists["tab_"+myitem.lid]);
+    lists["tab_"+myitem.lid].update_progress();
     post_to('/ajaj/todo/edit', myitem, function(data){
       console.log($.toJSON(data));
       if (data.success) {
@@ -188,8 +312,10 @@ $(function() {
       // TODO I NEED TO SORT THESE BASED ON .order OR THE DAMNED THING IS USELESS
       // I will do that on the database! that'll make it so fucking easy!
       for (var i in data.lists) {
-        _make_list(data.lists[i]);
-        update_list_progress(lists["tab_"+data.lists[i].lid]);
+        var listinf = data.lists[i];
+        console.log("GOTLIST: title="+listinf.title+" lid="+listinf.lid+" order="+listinf.order);
+        var templist = new MainList(listinf.title, listinf.lid, listinf.order);
+        templist.update_progress();
       }
       for (var i in data.todos) {
         _make_todo(data.todos[i]);
@@ -349,7 +475,8 @@ $(function() {
       if (!checktitle(title)) {
         dialog.find(".title").animate({backgroundColor: "red"}, 1000);
       } else {
-        make_list(title);
+        // TODO switch this
+        var templistvar = new MainList(title);
         dialog.dialog("close");
       }
     }
@@ -363,35 +490,6 @@ $(function() {
         {text: "Cancel", click: function () {dialog.remove()}}
       ]
     });
-  }
-  
-  function add_todo_dialog(list) {
-    var dialog = $_add_dialog.clone();
-
-    dialog.attr("id", null); // clear the id
-    $("body").append(dialog);
-    dialog.dialog({
-      close: function() {
-        dialog.remove();
-      },
-      buttons: [
-        {text: "Save Changes", click: function() {
-          var title = dialog.find(".title").val();
-          var date = dialog.find(".datepicker").val();
-          var description = dialog.find(".description").val();
-
-          if (!checktitle(title)) {
-            dialog.find(".title").animate({backgroundColor: "red"}, 1000);
-          } else {
-            make_todo(list.lid, title, date, description);
-            dialog.dialog("close");
-          }
-        }},
-        {text: "Cancel", click: function(){dialog.dialog("close")}}
-      ]
-    });
-
-    dialog.find(".datepicker").datepicker();
   }
 
   function edit_todo_dialog(myitem) {
@@ -479,34 +577,6 @@ $(function() {
     });
     
     //$.post(url, {"data": $.toJSON(data)}, , "json");
-  }
-
-  function update_list_progress(mylist) {
-    //console.log("inprogress", $.toJSON(mylist));
-    if (mylist == null) // i've got a bug or two in here and i don't understand them
-      return;
-
-    if (mylist.size == 0) { // don't try to divide by 0
-      var $parent = $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent();
-      $parent.progressbar("value", 0);
-      //$parent.find('.progress_text').text(""); // we have nothing in the list
-    } else {
-      var $parent = $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent();
-      var lid=mylist.lid; // who are we checking?
-      var what=$("#tab_"+lid+" li");
-
-      var n=0;
-      what.each(function() {
-        var id=$(this).attr("id");
-        if (items[id].finished)
-          n++;
-      });
-      var p=100 * n/mylist.size;
-      $parent.progressbar("value", p);
-      //$parent.find('.progress_text').text(""+Math.floor(p)+"%");
-    }
-
-    update_master_progress();
   }
 
   function update_master_progress() {
@@ -658,7 +728,7 @@ $(function() {
           alive_todo--;
 
           lists["tab_"+myitem.lid].size--;
-          update_list_progress(lists["tab_"+myitem.lid]);
+          lists["tab_"+myitem.lid].update_progress();
           myitem.lid=null; // set it null so i can filter later
         })
       });
@@ -672,7 +742,7 @@ $(function() {
 
     $sortlist.sortable("refresh");
     _setup_todo_arrows(myitem); // setup the arrows
-    update_list_progress(lists["tab_"+myitem.lid]);
+    lists["tab_"+myitem.lid].update_progress();
   };
 
   function setdroppable() {
@@ -703,62 +773,6 @@ $(function() {
     // insert code here about butts
     butt.button();
     butt.click(function () {add_list_dialog()})
-  }
-
-  function make_list(title) {
-    var mylist={id: null, title: title, size: 0, order: list_count};
-
-    // we need to fetch the ID! do this by creating it in the DB and getting it back
-    new_list(mylist,
-      function (data) {
-        console.log($.toJSON(data));
-        mylist.lid = data.lid;
-        _make_list(mylist);
-      },
-      function (data) {
-        console.log($.toJSON(data));
-    });
-  };
-
-  function _make_list(mylist) {
-    list_count++; // increment this, used for naively ordering
-    console.log($.toJSON(mylist));
-    mylist.size=0; // make sure the size exists, it'll always be 0
-    lists["tab_"+mylist.lid]=mylist;
-
-    var newtab=$_tab.clone();
-    var sortable=newtab.find("ul");
-
-    newtab.attr("id","tab_"+mylist.lid);
-    newtab.find('.additem').button().click(function(){
-      /* they asked to make a new item! */
-      add_todo_dialog(mylist);
-      $(this).blur();
-    });
-    
-    sortable.sortable({
-      update: function(event, ui) {
-        update_list(mylist);
-      }
-    });
-    
-    sortable.disableSelection();
-
-    $tabs.prepend(newtab);
-    $tabs.tabs("add", "#tab_"+mylist.lid, mylist.title);
-    
-    $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().progressbar({value: 0});
-    
-    $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().find(".ui-icon-close").click(function () {
-      if (mylist.size == 0)
-        delete_list(mylist, function() {
-          $tabs.tabs("remove", mylist.order);
-        });
-    });
-    setdroppable();
-    $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
-    $tabs.find(".ui-tabs-nav").sortable("refresh");
-    //make_listbutt(); // leave the button at the top, lets see how that works
   }
   
   /* init code */
