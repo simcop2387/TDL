@@ -29,6 +29,241 @@ $(function() {
     lists_id = list; items_id = item;
   }
 
+/***
+ * Task Class
+ ***/
+
+function Task(title, lid, order, description, due, tid, finished) {
+  this.title = title;
+  this.lid = lid;
+  this.order = order;
+  this.finished=false;
+  this.due = due;
+  this.description = description;
+
+  var _task = this; // since this changes too fucking often
+  // TODO make this use external functions!
+  var _make_task = function() {
+    items["todo_"+_task.tid]=_task;
+    alive_todo++;
+
+    // TODO most of these should be calling methods, haven't written them or cleaned it yet
+    var $sortlist=$(".connectedSortable", "#tab_" + _task.lid);
+    var $item = $('<li id="todo_'+_task.tid+'"></li>');
+
+    var $inner = $('<div class="ui-state-default ui-corner-all todo_inner" title="Drag me around"></div>');
+    var $desc = $('<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+_task.tid+'"></div>');
+
+    var $icon = $('<span class="arrows ui-icon" title="Expand description"></span>');
+
+    $inner.append($icon);
+    $inner.append('<span class="pullleft ui-icon ui-icon-circle-check" title="Finish todo">Finish todo</span>'+
+                  '<span class="title">'+_task.title+'</span>'+
+                  '<span class="pullright ui-icon ui-icon-close" title="Delete todo">Delete todo</span>'+
+                  '<span class="pullright ui-icon ui-icon-pencil" title="Edit todo">Edit todo</span>');
+
+    $item.append($inner);
+    $item.append($desc);
+
+    $desc.hide();
+    
+    if (_task.description) {
+      $desc.text(_task.description);
+    }
+
+    var $arrows = $('div:first .arrows', '#todo_'+_task.tid);
+
+    var hidedesc = function () {
+      $arrows.removeClass('ui-icon-triangle-1-s')
+             .addClass('ui-icon-triangle-1-e');
+
+      $desc.hide("slide",{ direction: "up" },500);
+      $inner.unbind("dblclick");
+      $inner.dblclick(showdesc);
+      $arrows.unbind("click");
+      $arrows.click(showdesc);
+    };
+
+    var showdesc = function () {
+      if (_task.description) {
+        $arrows.removeClass('ui-icon-triangle-1-e')
+               .addClass('ui-icon-triangle-1-s');
+
+        $desc.show("slide",{ direction: "up" },500);
+        $inner.unbind("dblclick");
+        $inner.dblclick(hidedesc);
+        $arrows.unbind("click");
+        $arrows.click(hidedesc);
+      }
+    };
+
+    $inner.dblclick(showdesc);
+    $arrows.click(showdesc);
+
+    var check=$inner.find(".ui-icon-circle-check");
+    var finishme=function() {
+      _task.finished=true;
+      finished_todo++;
+
+      /* send updates */
+      _task.update(function() {
+        $inner.removeClass("ui-state-default").addClass("ui-state-highlight");
+        check.unbind('click');
+        check.click(unfinishme);
+      },
+      function () {
+        finished_todo--;
+        _task.finished=false;
+      });
+    };
+
+    var unfinishme=function() {
+      _task.finished=false;
+      finished_todo--;
+
+      _task.update(function() {
+        $inner.removeClass("ui-state-highlight").addClass("ui-state-default");
+        check.unbind('click');
+        check.click(finishme);
+      },
+      function () {
+        _task.finished=true;
+        finished_todo++;
+      });
+    };
+
+    if (_task.finished) {
+      $inner.removeClass("ui-state-default").addClass("ui-state-highlight");
+      check.click(unfinishme);
+      finished_todo++;
+    } else {
+      check.click(finishme);
+    }
+
+    $inner.find("span.ui-icon-close").click(function() {
+      _task.delete(function () {
+        $inner.hide("slow", function () {
+          $item.remove();
+
+          if (_task.finished)
+            finished_todo--;
+          alive_todo--;
+
+          lists["tab_"+_task.lid].size--;
+          lists["tab_"+_task.lid].update_progress();
+          _task.lid=null; // set it null so i can filter later
+        })
+      });
+    });
+
+    $inner.find("span.ui-icon-pencil").click(function() {
+      _task.edit_dialog();
+    });
+
+    $sortlist.append($item);
+
+    $sortlist.sortable("refresh");
+    _task._setup_arrows();
+    lists["tab_"+_task.lid].update_progress();
+  };
+  
+  if (tid !== null) {
+    this.tid = tid;
+    this.finished = finished;
+    _make_task();
+  } else {
+    // we need to fetch the ID! do this by creating it in the DB and getting it back
+    post_to('/ajaj/todo/new', this,
+      function (data) {
+        console.log($.toJSON(data));
+        if (data.success) {
+          _task.tid = data.tid;
+          _make_task(_task);
+        }
+      });
+  }
+};
+
+Task.prototype.update = function(callback, errorback) {
+  lists["tab_"+this.lid].update_progress();
+  post_to('/ajaj/todo/edit', this, function(data){
+    console.log($.toJSON(data));
+    if (data.success) {
+      callback(data)
+    } else {
+      errorback(data)
+    }
+  });
+}
+
+Task.prototype._setup_arrows = function() {
+  var $arrows = $('div:first .arrows', '#todo_'+this.tid);
+
+  if (this.description) {
+    $arrows.addClass('ui-icon-triangle-1-e')
+    .removeClass('hide-icon');
+  } else {
+    $arrows.removeClass('ui-icon-triangle-1-e')
+    .removeClass('ui-icon-triangle-1-s')
+    .addClass('hide-icon');
+  }
+}
+
+Task.prototype.delete = function(succeed) {
+  /* delete a todo */
+  post_to('/ajaj/todo/delete', this, succeed); // TODO we don't need no stinking confirmation
+}
+
+Task.prototype.edit_dialog = function() {
+  var dialog = $_add_dialog.clone();
+  var _task = this; // save it for the callbacks
+
+  dialog.attr("id", null); // clear the id
+  $("body").append(dialog);
+  dialog.dialog({
+    title: "Edit this todo",
+    close: function() {
+      dialog.remove();
+    },
+    buttons: [
+      {text: "Save Changes", click: function() {
+        var title = dialog.find(".title").val();
+        var date = dialog.find(".datepicker").val();
+        var description = dialog.find(".description").val();
+
+        if (!checktitle(title)) {
+          dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+        } else {
+          /* update li */
+          var $li = $("#todo_"+_task.tid);
+          var $desc = $("#todo_desc_"+_task.tid);
+          console.log($li.attr("id"));
+          $li.find(".title").text(title);
+          _task.title=title;
+          _task.due = date;
+          _task.description=description;
+          $desc.text(description);
+
+          _task._setup_arrows();
+
+          _task.update(function() {
+            dialog.dialog("close");
+          },
+          function () {
+            /*display error!*/
+          });
+        }
+      }},
+      {text: "Cancel", click: function(){dialog.dialog("close")}}
+    ]
+  });
+
+  dialog.find(".datepicker").datepicker();
+  dialog.find(".datepicker").val(_task.due);
+  dialog.find(".title").val(_task.title);
+  dialog.find(".description").val(_task.description);
+}
+
 /***********************
  *Main List type Class *
  ***********************/
@@ -117,7 +352,8 @@ MainList.prototype.addtask = function() {
         if (!checktitle(title)) {
           dialog.find(".title").animate({backgroundColor: "red"}, 1000);
         } else {
-          make_todo(_list.lid, title, date, description);
+          //TODO i should be saving this in the list
+          var temptask = new Task(title, _list.lid, _list.size++, description);
           dialog.dialog("close");
         }
         }},
@@ -244,36 +480,6 @@ MainList.prototype.update_progress = function () {
     lists["tab_"+oldlist].update();
     lists[listelem].update();
   }
-  
-  function change_todo(myitem, callback, errorback) {
-    /* send the todo finish or unfinish event */
-    lists["tab_"+myitem.lid].update_progress();
-    post_to('/ajaj/todo/edit', myitem, function(data){
-      console.log($.toJSON(data));
-      if (data.success) {
-        callback(data)
-      } else {
-        errorback(data)
-      }
-    });
-  }
-
-  function new_todo(mylist, callback, errorback) {
-    /* send new todo */
-    post_to('/ajaj/todo/new', mylist,
-            function (data) {
-              if (data.success) {
-                callback(data)
-              } else {
-                errorback(data)
-              }
-            });
-  }
-
-  function delete_todo(myitem, succeed) {
-    /* delete a todo */
-    post_to('/ajaj/todo/delete', myitem, succeed); // TODO we don't need no stinking confirmation
-  }
 
   function finish_login() {
     
@@ -318,7 +524,8 @@ MainList.prototype.update_progress = function () {
         templist.update_progress();
       }
       for (var i in data.todos) {
-        _make_todo(data.todos[i]);
+        var taskinf = data.todos[i]; // TODO this should also save them to the lists
+        var temptodo = new Task(taskinf.title, taskinf.lid, taskinf.order, taskinf.description, taskinf.due, taskinf.tid, taskinf.finished);
       }
     });
   }
@@ -492,56 +699,6 @@ MainList.prototype.update_progress = function () {
     });
   }
 
-  function edit_todo_dialog(myitem) {
-    var dialog = $_add_dialog.clone();
-
-    dialog.attr("id", null); // clear the id
-    $("body").append(dialog);
-    dialog.dialog({
-      title: "Edit this todo",
-      close: function() {
-        dialog.remove();
-      },
-      buttons: [
-        {text: "Save Changes", click: function() {
-          var title = dialog.find(".title").val();
-          var date = dialog.find(".datepicker").val();
-          var description = dialog.find(".description").val();
-
-          if (!checktitle(title)) {
-            dialog.find(".title").animate({backgroundColor: "red"}, 1000);
-          } else {
-
-            /* update li */
-            var $li = $("#todo_"+myitem.tid);
-            var $desc = $("#todo_desc_"+myitem.tid);
-            console.log($li.attr("id"));
-            $li.find(".title").text(title);
-            myitem.title=title;
-            myitem.due = date;
-            myitem.description=description;
-            $desc.text(description);
-            
-            _setup_todo_arrows(myitem);
-
-            change_todo(myitem, function() {
-              dialog.dialog("close");
-            },
-            function () {
-              /*display error!*/
-            });
-          }
-        }},
-        {text: "Cancel", click: function(){dialog.dialog("close")}}
-      ]
-    });
-
-    dialog.find(".datepicker").datepicker();
-    dialog.find(".datepicker").val(myitem.due);
-    dialog.find(".title").val(myitem.title);
-    dialog.find(".description").val(myitem.description);
-  }
-
   /**********************************************
   * Misc. functions                             *
   **********************************************/
@@ -591,159 +748,6 @@ MainList.prototype.update_progress = function () {
   /**********************************************
   * Creation functions                          *
   **********************************************/
-  function make_todo(list, title, due, description) {
-    var myitem={title: title, tid: null, due: due, lid: list, finished: false, order: lists["tab_"+list].size, description: description};
-    
-    // we need to fetch the ID! do this by creating it in the DB and getting it back
-    new_todo(myitem,
-             function (data) {
-               console.log($.toJSON(data));
-               myitem.tid = data.tid;
-               _make_todo(myitem);
-             },
-             function (data) {
-               console.log($.toJSON(data));
-             });
-  };
-
-  function _setup_todo_arrows(myitem) {
-    var $arrows = $('div:first .arrows', '#todo_'+myitem.tid);
-    
-    if (myitem.description) {
-      $arrows.addClass('ui-icon-triangle-1-e')
-             .removeClass('hide-icon');
-    } else {
-      $arrows.removeClass('ui-icon-triangle-1-e')
-             .removeClass('ui-icon-triangle-1-s')
-             .addClass('hide-icon');
-    }
-  }
-  
-  function _make_todo(myitem) {
-    console.log($.toJSON(myitem));
-    lists["tab_"+myitem.lid].size++;
-    items["todo_"+myitem.tid]=myitem;
-    alive_todo++;
-
-    var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
-    var $item = $('<li id="todo_'+myitem.tid+'"></li>');
-    
-    var $inner = $('<div class="ui-state-default ui-corner-all todo_inner" title="Drag me around"></div>');
-    var $desc = $('<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+myitem.tid+'"></div>');
-
-    var $icon = $('<span class="arrows ui-icon" title="Expand description"></span>');
-
-    $inner.append($icon);
-    $inner.append('<span class="pullleft ui-icon ui-icon-circle-check" title="Finish todo">Finish todo</span>'+
-                  '<span class="title">'+myitem.title+'</span>'+
-                  '<span class="pullright ui-icon ui-icon-close" title="Delete todo">Delete todo</span>'+
-                  '<span class="pullright ui-icon ui-icon-pencil" title="Edit todo">Edit todo</span>');
-    
-    $item.append($inner);
-    $item.append($desc);
-
-    $desc.hide();
-
-    //myitem.desc="foo";
-    if (myitem.description) {
-      $desc.text(myitem.description);
-    }
-
-    var $arrows = $('div:first .arrows', '#todo_'+myitem.tid);
-    
-    var hidedesc = function () {
-      $arrows.removeClass('ui-icon-triangle-1-s')
-             .addClass('ui-icon-triangle-1-e');
-      
-      $desc.hide("slide",{ direction: "up" },500);
-      $inner.unbind("dblclick");
-      $inner.dblclick(showdesc);
-      $arrows.unbind("click");
-      $arrows.click(showdesc);
-    };
-    
-    var showdesc = function () {
-      if (myitem.description) {
-        $arrows.removeClass('ui-icon-triangle-1-e')
-               .addClass('ui-icon-triangle-1-s');
-
-        $desc.show("slide",{ direction: "up" },500);
-        $inner.unbind("dblclick");
-        $inner.dblclick(hidedesc);
-        $arrows.unbind("click");
-        $arrows.click(hidedesc);
-      }
-    };
-    
-    $inner.dblclick(showdesc);
-    $arrows.click(showdesc);
-    
-    var check=$inner.find(".ui-icon-circle-check");
-    var finishme=function() {
-      myitem.finished=true;
-      finished_todo++;
-
-      /* send updates */
-      change_todo(myitem, function() {
-        $inner.removeClass("ui-state-default").addClass("ui-state-highlight");
-        check.unbind('click');
-        check.click(unfinishme);
-      },
-      function () {
-        finished_todo--;
-        myitem.finished=false;
-      });
-    };
-
-    var unfinishme=function() {
-      myitem.finished=false;
-      finished_todo--;
-      
-      change_todo(myitem, function() {
-        $inner.removeClass("ui-state-highlight").addClass("ui-state-default");
-        check.unbind('click');
-        check.click(finishme);
-      },
-      function () {
-        myitem.finished=true;
-        finished_todo++;
-      });
-    };
-
-    if (myitem.finished) {
-      $inner.removeClass("ui-state-default").addClass("ui-state-highlight");
-      check.click(unfinishme);
-      finished_todo++;
-    } else {
-      check.click(finishme); 
-    }
-
-    $inner.find("span.ui-icon-close").click(function() {
-      delete_todo(myitem, function () {
-        $inner.hide("slow", function () {
-          $item.remove();
-
-          if (myitem.finished)
-            finished_todo--;
-          alive_todo--;
-
-          lists["tab_"+myitem.lid].size--;
-          lists["tab_"+myitem.lid].update_progress();
-          myitem.lid=null; // set it null so i can filter later
-        })
-      });
-    });
-
-    $inner.find("span.ui-icon-pencil").click(function() {
-      edit_todo_dialog(myitem);
-    });
-
-    $sortlist.append($item);
-
-    $sortlist.sortable("refresh");
-    _setup_todo_arrows(myitem); // setup the arrows
-    lists["tab_"+myitem.lid].update_progress();
-  };
 
   function setdroppable() {
     var $tab_items = $( "ul:first li", $tabs );
