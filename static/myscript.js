@@ -171,16 +171,16 @@ function Task(title, lid, order, description, due, tid, finished) {
   }
 };
 
-// TODO this ought to be "automagic", just ignore anything starting with a _
 Task.prototype.toJSON = function() {
-  return {"tid": this.tid,
-    "lid": this.lid,
-    "order": this.order,
-    "title": this.title,
-    "finished": this.finished,
-    "due": this.due,
-    "description": this.description
+  var serial = {};
+
+  for (var key in this) {
+    // ignore things that are "private" (begins with _), or are unserializable
+    if (key.substr(0,1) != "_" && typeof this[key] != "function") {
+      serial[key] = this[key]; // makes a copy of it
+    }
   };
+  return serial;
 }
 
 Task.prototype.update = function(callback, errorback) {
@@ -291,6 +291,7 @@ function MainList(title, lid, order) {
   this.lid=null;
   this.size=0;
   this.order=master_list_count++;
+  this._items=new Array();
 
   console.log("ListConstructor: title="+title+" lid="+lid+" order="+order);
   var _list=this; // does this suck horribly in javascript?
@@ -331,6 +332,18 @@ function MainList(title, lid, order) {
         }});
   }
 };
+
+MainList.prototype.toJSON = function() {
+    var serial = {};
+
+    for (var key in this) {
+      // ignore things that are "private" (begins with _), or are unserializable
+          if (key.substr(0,1) != "_" && typeof this[key] != "function") {
+            serial[key] = this[key]; // makes a copy of it
+          }
+    };
+    return serial;
+}
 
 MainList.prototype.addtask = function() {
   var dialog = $_add_dialog.clone();
@@ -381,18 +394,16 @@ MainList.prototype.update = function() {
   }
 
   // TODO the object should be able to cache this later, making it faster
-  var what=$("#tab_"+this.lid+" li");
   var arr = new Array();
 
-  var i=0;
-  what.each(function() {
-    var id=$(this).attr("id");
-      //console.log("ARG: ", $(this).attr("id"));
-    items[id].order=i++;
-    arr.push(items[id].tid);
-  });
+  var itemlength = this._items.length();
+  for (var i=0; i < itemlength; i++) {
+    this._items[i].order=i;
+    arr.push(this._items[i].tid)
+  }
 
-  this.size=i;
+  // TODO if i'm storing all of them inside here i don't need the size bit
+  this.size=itemlength;
   this.update_progress();
 
   /* TODO fuck i don't understand my own code... why doesn't this require a list?
