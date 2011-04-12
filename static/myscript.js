@@ -267,6 +267,24 @@ Task.prototype.edit_dialog = function() {
   dialog.find(".description").val(_task.description);
 }
 
+Task.prototype.change_list = function(newlist) {
+  if (newlist == null)
+    return;
+    
+  /* send new order of lists */
+  /* listelem is the new list */
+  var lid = newlist.lid;
+  var oldlist = this.lid;
+    
+  this.lid = lid; /* set the new list */
+    
+  // send item update, with new list
+  this.update(function() {}, function () {}); // TODO we don't need no confirmation
+  // send order of old list and new list
+  lists["tab_"+oldlist].update();
+  newlist.update();
+}
+
 /***********************
  *Main List type Class *
  ***********************/
@@ -437,7 +455,6 @@ MainList.prototype.update_progress = function () {
  * END Main List Class
  */
 
-
   /**********************************************
   * Event callbacks                             *
   **********************************************/
@@ -461,27 +478,6 @@ MainList.prototype.update_progress = function () {
         console.log("ORDER ERROR: ", data.message);
       }
     });
-  }
-
-  function change_list($item, listelem) {
-    if ($item == null || listelem == null)
-      return;
-    
-    /* send new order of lists */
-    /* listelem is the new list */
-    var item = $item.attr("id");
-    var lid = lists[listelem].lid;
-    var oldlist = items[item].lid;
-
-    //console.log("change_list", item, lid, oldlist);
-
-    items[item].lid = lid; /* set the new list */
-
-    // send item update, with new list
-    items[item].update(function() {}, function () {});
-    // send order of old list and new list
-    lists["tab_"+oldlist].update();
-    lists[listelem].update();
   }
 
   function finish_login() {
@@ -763,11 +759,14 @@ MainList.prototype.update_progress = function () {
         var $item = $( this );
         var $list = $( $item.find( "a" ).attr( "href" ) )
                     .find( ".connectedSortable" );
+
+        var task = items[ui.draggable.attr("id")];
+        var newlist = lists[$item.find( "a" ).attr( "href" ).substr(1)];
         // i don't know what i want here, i think $item and $list are what i want but we'll see
 
         ui.draggable.hide( "slow", function() {
           ui.draggable.appendTo( $list ).show();
-          change_list(ui.draggable, $item.find( "a" ).attr( "href" ).substr(1));
+          task.change_list(newlist);
         });
       }
     });
