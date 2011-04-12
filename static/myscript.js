@@ -14,8 +14,7 @@ $(function() {
   var $_email_dialog=$("#_email_dialog");
   var $_about_dialog=$("#_about_dialog");
   //var $_password_dialog=$("#_password_dialog");
-  
-  var lists=new Array();
+
   var items=new Array();
   var listman;
 
@@ -40,6 +39,8 @@ function Task(title, lid, order, description, due, tid, finished) {
   this.finished=false;
   this.due = due;
   this.description = description;
+  this._inner = null;
+  this._item = null;
 
   var _task = this; // since this changes too fucking often
   // TODO make this use external functions!
@@ -48,22 +49,22 @@ function Task(title, lid, order, description, due, tid, finished) {
     alive_todo++;
 
     // TODO most of these should be calling methods, haven't written them or cleaned it yet
-    var $sortlist=$(".connectedSortable", "#tab_" + _task.lid);
-    var $item = $('<li id="todo_'+_task.tid+'"></li>');
+    _task._item = $('<li id="todo_'+_task.tid+'"></li>');
 
-    var $inner = $('<div class="ui-state-default ui-corner-all todo_inner" title="Drag me around"></div>');
+    _task._inner = $('<div class="ui-state-default ui-corner-all todo_inner" title="Drag me around"></div>');
+    
     var $desc = $('<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+_task.tid+'"></div>');
 
     var $icon = $('<span class="arrows ui-icon" title="Expand description"></span>');
 
-    $inner.append($icon);
-    $inner.append('<span class="pullleft ui-icon ui-icon-circle-check" title="Finish todo">Finish todo</span>'+
+    _task._inner.append($icon);
+    _task._inner.append('<span class="pullleft ui-icon ui-icon-circle-check" title="Finish todo">Finish todo</span>'+
                   '<span class="title">'+_task.title+'</span>'+
                   '<span class="pullright ui-icon ui-icon-close" title="Delete todo">Delete todo</span>'+
                   '<span class="pullright ui-icon ui-icon-pencil" title="Edit todo">Edit todo</span>');
 
-    $item.append($inner);
-    $item.append($desc);
+    _task._item.append(_task._inner);
+    _task._item.append($desc);
 
     $desc.hide();
     
@@ -78,8 +79,8 @@ function Task(title, lid, order, description, due, tid, finished) {
              .addClass('ui-icon-triangle-1-e');
 
       $desc.hide("slide",{ direction: "up" },500);
-      $inner.unbind("dblclick");
-      $inner.dblclick(showdesc);
+      _task._inner.unbind("dblclick");
+      _task._inner.dblclick(showdesc);
       $arrows.unbind("click");
       $arrows.click(showdesc);
     };
@@ -90,24 +91,24 @@ function Task(title, lid, order, description, due, tid, finished) {
                .addClass('ui-icon-triangle-1-s');
 
         $desc.show("slide",{ direction: "up" },500);
-        $inner.unbind("dblclick");
-        $inner.dblclick(hidedesc);
+        _task._inner.unbind("dblclick");
+        _task._inner.dblclick(hidedesc);
         $arrows.unbind("click");
         $arrows.click(hidedesc);
       }
     };
 
-    $inner.dblclick(showdesc);
+    _task._inner.dblclick(showdesc);
     $arrows.click(showdesc);
 
-    var check=$inner.find(".ui-icon-circle-check");
+    var check=_task._inner.find(".ui-icon-circle-check");
     var finishme=function() {
       _task.finished=true;
       finished_todo++;
 
       /* send updates */
       _task.update(function() {
-        $inner.removeClass("ui-state-default").addClass("ui-state-highlight");
+        _task._inner.removeClass("ui-state-default").addClass("ui-state-highlight");
         check.unbind('click');
         check.click(unfinishme);
       },
@@ -122,7 +123,7 @@ function Task(title, lid, order, description, due, tid, finished) {
       finished_todo--;
 
       _task.update(function() {
-        $inner.removeClass("ui-state-highlight").addClass("ui-state-default");
+        _task._inner.removeClass("ui-state-highlight").addClass("ui-state-default");
         check.unbind('click');
         check.click(finishme);
       },
@@ -133,38 +134,22 @@ function Task(title, lid, order, description, due, tid, finished) {
     };
 
     if (_task.finished) {
-      $inner.removeClass("ui-state-default").addClass("ui-state-highlight");
+      _task._inner.removeClass("ui-state-default").addClass("ui-state-highlight");
       check.click(unfinishme);
       finished_todo++;
     } else {
       check.click(finishme);
     }
 
-    $inner.find("span.ui-icon-close").click(function() {
+    _task._inner.find("span.ui-icon-close").click(function() {
       _task.delete(function () {
-        $inner.hide("slow", function () {
-          $item.remove();
-
-          if (_task.finished)
-            finished_todo--;
-          alive_todo--;
-
-          lists["tab_"+_task.lid].size--;
-          lists["tab_"+_task.lid].update_progress();
-          _task.lid=null; // set it null so i can filter later
-        })
+        listman.get_list(_task.lid).remove_task(_task);
       });
     });
 
-    $inner.find("span.ui-icon-pencil").click(function() {
+    _task._inner.find("span.ui-icon-pencil").click(function() {
       _task.edit_dialog();
     });
-
-    $sortlist.append($item);
-
-    $sortlist.sortable("refresh");
-    _task._setup_arrows();
-    lists["tab_"+_task.lid].update_progress();
   };
 
   console.log("DAMASCUS", tid);
@@ -186,9 +171,21 @@ function Task(title, lid, order, description, due, tid, finished) {
   }
 };
 
+// TODO this ought to be "automagic", just ignore anything starting with a _
+Task.prototype.toJSON = function() {
+  return {"tid": this.tid,
+    "lid": this.lid,
+    "order": this.order,
+    "title": this.title,
+    "finished": this.finished,
+    "due": this.due,
+    "description": this.description
+  };
+}
+
 Task.prototype.update = function(callback, errorback) {
-  lists["tab_"+this.lid].update_progress();
-  console.log($.toJSON(this));
+  listman.get_list(this.lid).update_progress();
+  //console.log($.toJSON(this));
   post_to('/ajaj/todo/edit', this, function(data){
     console.log($.toJSON(data));
     if (data.success) {
@@ -281,7 +278,7 @@ Task.prototype.change_list = function(newlist) {
   // send item update, with new list
   this.update(function() {}, function () {}); // TODO we don't need no confirmation
   // send order of old list and new list
-  lists["tab_"+oldlist].update();
+  listman.get_list(oldlist).update();
   newlist.update();
 }
 
@@ -299,8 +296,6 @@ function MainList(title, lid, order) {
   var _list=this; // does this suck horribly in javascript?
   
   var _make_list = function () {
-    lists["tab_"+_list.lid]=_list; // TODO this should be done externally!!!
-
     var newtab=$_tab.clone();
     var sortable=newtab.find("ul");
 
@@ -359,7 +354,8 @@ MainList.prototype.addtask = function() {
           dialog.find(".title").animate({backgroundColor: "red"}, 1000);
         } else {
           //TODO i should be saving this in the list
-          var temptask = new Task(title, _list.lid, _list.size++, description);
+          _list.add_task(new Task(title, _list.lid, _list.size, description));
+          
           dialog.dialog("close");
         }
         }},
@@ -373,9 +369,7 @@ MainList.prototype.delete = function() {
   var _list=this;
   if (this.size == 0)
     post_to('/ajaj/list/delete', this, function () {
-      // TODO this needs to go to an internal function
-      listman.tabs.tabs("remove", _list.order);
-      listman.update_lists();
+      listman.remove_list(_list);
     }); // TODO we don't need no stinking confirmation
 };
 
@@ -386,7 +380,7 @@ MainList.prototype.update = function() {
     return;
   }
 
-  // the object should be able to cache this later, making it faster
+  // TODO the object should be able to cache this later, making it faster
   var what=$("#tab_"+this.lid+" li");
   var arr = new Array();
 
@@ -412,7 +406,7 @@ MainList.prototype.update = function() {
 };
 
 MainList.prototype.update_progress = function () {
-  console.log("inprogress", $.toJSON(this));
+  //console.log("inprogress", $.toJSON(this));
   // this was left from the old sphagetti code, shouldn't need it
   if (this == null) // i've got a bug or two in here and i don't understand them
     return;
@@ -442,13 +436,44 @@ MainList.prototype.update_progress = function () {
   update_master_progress();
 };
 
+MainList.prototype.add_task = function(task) {
+  var $sortlist=$(".connectedSortable", "#tab_" + this.lid);
+  $sortlist.append(task._item);
+  $sortlist.sortable("refresh");
+  this.update_progress();
+  task.lid = this.lid;
+  task.order = this.size++;
+  task._setup_arrows();
+}
+
+MainList.prototype.remove_task = function (task) {
+  var _list = this;
+  task._inner.hide("slow", function () {
+    task._item.remove();
+
+    if (task.finished)
+      finished_todo--;
+    alive_todo--;
+
+    // TODO this should be a method
+    _list.size--;
+    _list.update_progress();
+    task.lid=null; // set it null so i can filter later
+  })
+  
+}
+
 /***************
  * END Main List Class
+ */
+/**************
+ * ListManager Class
  */
 
 function ListManager() {
   /*this should do something*/
   this.tabs = $_tabs.clone();
+  this.lists = new Array();
       
   this.tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close' title='Remove list'>Remove List</span></li>"})
       .addClass('ui-tabs-vertical ui-helper-clearfix')
@@ -486,8 +511,9 @@ ListManager.prototype.setdroppable = function() {
       var $list = $( $item.find( "a" ).attr( "href" ) )
       .find( ".connectedSortable" );
 
+      // TODO this the the only blocker on ITEMS_REMOVAL I need an api to ListManager
       var task = items[ui.draggable.attr("id")];
-      var newlist = lists[$item.find( "a" ).attr( "href" ).substr(1)];
+      var newlist = listman.get_list($item.find( "a" ).attr( "href" ));
       // i don't know what i want here, i think $item and $list are what i want but we'll see
 
       ui.draggable.hide( "slow", function() {
@@ -508,8 +534,8 @@ ListManager.prototype.update_lists = function(event, ui) {
   var i=0;
   what.each(function() {
     var id=$(this).attr("href").substr(1);
-    lists[id].order=i++;
-    arr.push(lists[id].lid);
+    listman.get_list(id).order=i++;
+    arr.push(listman.get_list(id).lid); // TODO can't i just take this from id?
   });
 
   post_to('/ajaj/list/order', {lists: arr}, function(data) {
@@ -523,9 +549,63 @@ ListManager.prototype.make_listbutt = function() {
   var butt = $("<button class='addlist'>Add new list</button>");
   this.tabs.find('ul.ui-tabs-nav button').remove();
   this.tabs.find('ul.ui-tabs-nav').append(butt);
+  var _lm = this;
   // insert code here about butts
   butt.button();
-  butt.click(function () {add_list_dialog()})
+  butt.click(function () {_lm.add_list_dialog()})
+}
+
+ListManager.prototype.remove_list = function(list) {
+  listman.tabs.tabs("remove", list.order);
+  listman.update_lists(); // update all the orders and get it all synced properly
+}
+
+ListManager.prototype.add_list_dialog = function() {
+  var dialog = $_add_list_dialog.clone();
+  dialog.attr("id", null); // clear the id
+  $("body").append(dialog);
+
+  var savelist = function () {
+    var title = dialog.find(".title").val();
+
+    if (!checktitle(title)) {
+      dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+    } else {
+      // TODO switch this to saving inside here
+      listman.add_list(new MainList(title));
+      dialog.dialog("close");
+    }
+  }
+    
+  dialog.dialog({
+    close: function() {
+      dialog.remove();
+    },
+    buttons: [
+      {text: "Add List", click: savelist},
+      {text: "Cancel", click: function () {dialog.remove()}}
+    ]
+  });
+}
+
+ListManager.prototype.get_list = function(lid) {
+  //console.log("GET_LIST: "+lid);
+  var lidstr = ""+lid;
+  if (lidstr.substr(0,4) == "tab_") {
+    // we've got an element id not a lid, fix it
+    lid = lidstr.substr(4);
+  } else if (lidstr.substr(0,5) == "#tab_") {
+    console.log("WARNING wrong type here!");
+    lid = lidstr.substr(5);
+  }
+
+  return this.lists[lid];
+}
+
+ListManager.prototype.add_list = function(list) {
+  console.log("ADD_LIST: "+list.lid);
+
+  return this.lists[list.lid] = list; // return our list also
 }
 
   /**********************************************
@@ -533,7 +613,6 @@ ListManager.prototype.make_listbutt = function() {
   **********************************************/
 
   function finish_login() {
-    // TODO use listman here
     listman = new ListManager();
     get_data();
 
@@ -565,12 +644,14 @@ ListManager.prototype.make_listbutt = function() {
         console.log("GOTLIST: title="+listinf.title+" lid="+listinf.lid+" order="+listinf.order);
         var templist = new MainList(listinf.title, listinf.lid, listinf.order);
         templist.update_progress();
+        // TODO this needs to check for parent/child relationships
+        listman.add_list(templist);
       }
       for (var i in data.todos) {
         var taskinf = data.todos[i]; // TODO this should also save them to the lists
         var temptodo = new Task(taskinf.title, taskinf.lid, taskinf.order, taskinf.description, taskinf.due, taskinf.tid, taskinf.finished);
-        // TODO Move this logic to the list classes, through listmanager
-        lists["tab_"+taskinf.lid].size++;
+        // TODO Move this logic to the list classes
+        listman.get_list(taskinf.lid).add_task(temptodo);
       }
     });
   }
@@ -714,35 +795,6 @@ ListManager.prototype.make_listbutt = function() {
     $password.keypress(enterfunc);
     $passrepeat.keypress(enterfunc);
     $emailaddr.keypress(enterfunc);
-  }
-
-  // TODO this should be part of the ListManager class
-  function add_list_dialog() {
-    var dialog = $_add_list_dialog.clone();
-    dialog.attr("id", null); // clear the id
-    $("body").append(dialog);
-
-    var savelist = function () {
-      var title = dialog.find(".title").val();
-
-      if (!checktitle(title)) {
-        dialog.find(".title").animate({backgroundColor: "red"}, 1000);
-      } else {
-        // TODO switch this
-        var templistvar = new MainList(title);
-        dialog.dialog("close");
-      }
-    }
-
-    dialog.dialog({
-      close: function() {
-        dialog.remove();
-      },
-      buttons: [
-        {text: "Add List", click: savelist},
-        {text: "Cancel", click: function () {dialog.remove()}}
-      ]
-    });
   }
 
   /**********************************************
