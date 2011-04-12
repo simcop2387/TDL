@@ -4,7 +4,6 @@ if (console == null) {
 }
 
 $(function() {
-  var $tabs;
   var $_tabs=$("#_tabs");
   var $_tab=$("#_tab");
   var $hidden=$("#hidden");
@@ -18,6 +17,7 @@ $(function() {
   
   var lists=new Array();
   var items=new Array();
+  var listman;
 
   var master_list_count=0;
   var alive_todo=0;
@@ -293,14 +293,12 @@ function MainList(title, lid, order) {
   this.title=title;
   this.lid=null;
   this.size=0;
-  this.order=master_list_count;
+  this.order=master_list_count++;
 
   console.log("ListConstructor: title="+title+" lid="+lid+" order="+order);
   var _list=this; // does this suck horribly in javascript?
   
   var _make_list = function () {
-    master_list_count++;
-
     lists["tab_"+_list.lid]=_list; // TODO this should be done externally!!!
 
     var newtab=$_tab.clone();
@@ -321,20 +319,7 @@ function MainList(title, lid, order) {
 
     sortable.disableSelection();
 
-    // TODO This code needs to be moved to a better OO style, somewhere else.  e.g. i shouldn't be touching $tabs myself
-    $tabs.prepend(newtab);
-    $tabs.tabs("add", "#tab_"+_list.lid, _list.title);
-
-    $tabs.find('a[href="#tab_'+_list.lid+'"]').parent().progressbar({value: 0});
-
-    $tabs.find('a[href="#tab_'+_list.lid+'"]').parent().find(".ui-icon-close").click(function () {
-      if (_list.size == 0)
-        _list.delete();
-    });
-
-    setdroppable();
-    $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
-    $tabs.find(".ui-tabs-nav").sortable("refresh");
+    listman.addlist(newtab, _list);
   }
   
   if (lid) {
@@ -385,9 +370,13 @@ MainList.prototype.addtask = function() {
 }
 
 MainList.prototype.delete = function() {
-  post_to('/ajaj/list/delete', this, function () {
-    $tabs.tabs("remove", this.order);
-  }); // TODO we don't need no stinking confirmation
+  var _list=this;
+  if (this.size == 0)
+    post_to('/ajaj/list/delete', this, function () {
+      // TODO this needs to go to an internal function
+      listman.tabs.tabs("remove", _list.order);
+      listman.update_lists();
+    }); // TODO we don't need no stinking confirmation
 };
 
 MainList.prototype.update = function() {
@@ -429,11 +418,13 @@ MainList.prototype.update_progress = function () {
     return;
 
   if (this.size == 0) { // don't try to divide by 0
-    var $parent = $tabs.find('a[href="#tab_'+this.lid+'"]').parent();
+    // TODO needs to be a method rather than fucking with the stuff itself
+    var $parent = listman.tabs.find('a[href="#tab_'+this.lid+'"]').parent();
     $parent.progressbar("value", 0);
     //$parent.find('.progress_text').text(""); // we have nothing in the list
   } else {
-    var $parent = $tabs.find('a[href="#tab_'+this.lid+'"]').parent();
+    // TODO needs to be a method rather than fucking with the stuff itself
+    var $parent = listman.tabs.find('a[href="#tab_'+this.lid+'"]').parent();
     var what=$("#tab_"+this.lid+" li");
 
     var n=0;
@@ -455,42 +446,95 @@ MainList.prototype.update_progress = function () {
  * END Main List Class
  */
 
+function ListManager() {
+  /*this should do something*/
+  this.tabs = $_tabs.clone();
+      
+  this.tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close' title='Remove list'>Remove List</span></li>"})
+      .addClass('ui-tabs-vertical ui-helper-clearfix')
+      .find('.ui-tabs-nav').sortable({axis: "y", update: function(event, ui) {listman.update_lists(event,ui)}});
+      
+  this.tabs.removeClass('ui-widget-content');
+  $(".content").html("").append(this.tabs);
+  this.make_listbutt();
+};
+
+ListManager.prototype.addlist = function(htmlelement, listobj) {
+  this.tabs.prepend(htmlelement);
+  this.tabs.tabs("add", "#tab_"+listobj.lid, listobj.title);
+  
+  this.tabs.find('a[href="#tab_'+listobj.lid+'"]').parent().progressbar({value: 0});
+  
+  this.tabs.find('a[href="#tab_'+listobj.lid+'"]').parent().find(".ui-icon-close").click(function () {
+      listobj.delete();
+  });
+  
+  this.setdroppable();
+  this.tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
+  this.tabs.find(".ui-tabs-nav").sortable("refresh");
+};
+
+ListManager.prototype.setdroppable = function() {
+  var $tab_items = $( "ul:first li", this.tabs );
+  $tab_items.droppable("destroy");
+  $tab_items.droppable({
+    tolerance: 'pointer',
+    accept: ".connectedSortable li",
+    hoverClass: "ui-state-hover",
+    drop: function( event, ui ) {
+      var $item = $( this );
+      var $list = $( $item.find( "a" ).attr( "href" ) )
+      .find( ".connectedSortable" );
+
+      var task = items[ui.draggable.attr("id")];
+      var newlist = lists[$item.find( "a" ).attr( "href" ).substr(1)];
+      // i don't know what i want here, i think $item and $list are what i want but we'll see
+
+      ui.draggable.hide( "slow", function() {
+        ui.draggable.appendTo( $list ).show();
+        task.change_list(newlist);
+      });
+    }
+  });
+}
+
+ListManager.prototype.update_lists = function(event, ui) {
+  /* send new order of lists */
+
+  var nav=this.tabs.find(".ui-tabs-nav");
+  var what=nav.find('li a');
+
+  var arr = new Array();
+  var i=0;
+  what.each(function() {
+    var id=$(this).attr("href").substr(1);
+    lists[id].order=i++;
+    arr.push(lists[id].lid);
+  });
+
+  post_to('/ajaj/list/order', {lists: arr}, function(data) {
+    if (!data.success) {
+      console.log("ORDER ERROR: ", data.message);
+    }
+  });
+}
+
+ListManager.prototype.make_listbutt = function() {
+  var butt = $("<button class='addlist'>Add new list</button>");
+  this.tabs.find('ul.ui-tabs-nav button').remove();
+  this.tabs.find('ul.ui-tabs-nav').append(butt);
+  // insert code here about butts
+  butt.button();
+  butt.click(function () {add_list_dialog()})
+}
+
   /**********************************************
   * Event callbacks                             *
   **********************************************/
 
-  function update_lists(event, ui) {
-    /* send new order of lists */
-
-    var nav=$tabs.find(".ui-tabs-nav");
-    var what=nav.find('li a');
-
-    var arr = new Array();
-    var i=0;
-    what.each(function() {
-      var id=$(this).attr("href").substr(1);
-      lists[id].order=i++;
-      arr.push(lists[id].lid);
-    });
-    
-    post_to('/ajaj/list/order', {lists: arr}, function(data) {
-      if (!data.success) {
-        console.log("ORDER ERROR: ", data.message);
-      }
-    });
-  }
-
   function finish_login() {
-    
-    $tabs = $_tabs.clone();
-    
-    $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close' title='Remove list'>Remove List</span></li>"})
-         .addClass('ui-tabs-vertical ui-helper-clearfix')
-         .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
-
-    $tabs.removeClass('ui-widget-content');
-    $(".content").html("").append($tabs);
-    make_listbutt();
+    // TODO use listman here
+    listman = new ListManager();
     get_data();
 
     $("#chemail").click(email_dialog);
@@ -525,6 +569,8 @@ MainList.prototype.update_progress = function () {
       for (var i in data.todos) {
         var taskinf = data.todos[i]; // TODO this should also save them to the lists
         var temptodo = new Task(taskinf.title, taskinf.lid, taskinf.order, taskinf.description, taskinf.due, taskinf.tid, taskinf.finished);
+        // TODO Move this logic to the list classes, through listmanager
+        lists["tab_"+taskinf.lid].size++;
       }
     });
   }
@@ -670,6 +716,7 @@ MainList.prototype.update_progress = function () {
     $emailaddr.keypress(enterfunc);
   }
 
+  // TODO this should be part of the ListManager class
   function add_list_dialog() {
     var dialog = $_add_list_dialog.clone();
     dialog.attr("id", null); // clear the id
@@ -747,39 +794,6 @@ MainList.prototype.update_progress = function () {
   /**********************************************
   * Creation functions                          *
   **********************************************/
-
-  function setdroppable() {
-    var $tab_items = $( "ul:first li", $tabs );
-    $tab_items.droppable("destroy");
-    $tab_items.droppable({
-      tolerance: 'pointer',
-      accept: ".connectedSortable li",
-      hoverClass: "ui-state-hover",
-      drop: function( event, ui ) {
-        var $item = $( this );
-        var $list = $( $item.find( "a" ).attr( "href" ) )
-                    .find( ".connectedSortable" );
-
-        var task = items[ui.draggable.attr("id")];
-        var newlist = lists[$item.find( "a" ).attr( "href" ).substr(1)];
-        // i don't know what i want here, i think $item and $list are what i want but we'll see
-
-        ui.draggable.hide( "slow", function() {
-          ui.draggable.appendTo( $list ).show();
-          task.change_list(newlist);
-        });
-      }
-    });
-  }
-
-  function make_listbutt() {
-    var butt = $("<button class='addlist'>Add new list</button>");
-    $tabs.find('ul.ui-tabs-nav button').remove();
-    $tabs.find('ul.ui-tabs-nav').append(butt);
-    // insert code here about butts
-    butt.button();
-    butt.click(function () {add_list_dialog()})
-  }
   
   /* init code */
   $("#mainprogress").hide().progressbar({value: 0});
