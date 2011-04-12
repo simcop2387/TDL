@@ -166,8 +166,9 @@ function Task(title, lid, order, description, due, tid, finished) {
     _task._setup_arrows();
     lists["tab_"+_task.lid].update_progress();
   };
-  
-  if (tid !== null) {
+
+  console.log("DAMASCUS", tid);
+  if (tid) {
     this.tid = tid;
     this.finished = finished;
     _make_task();
@@ -175,6 +176,7 @@ function Task(title, lid, order, description, due, tid, finished) {
     // we need to fetch the ID! do this by creating it in the DB and getting it back
     post_to('/ajaj/todo/new', this,
       function (data) {
+        console.log("DISCUS!");
         console.log($.toJSON(data));
         if (data.success) {
           _task.tid = data.tid;
@@ -186,6 +188,7 @@ function Task(title, lid, order, description, due, tid, finished) {
 
 Task.prototype.update = function(callback, errorback) {
   lists["tab_"+this.lid].update_progress();
+  console.log($.toJSON(this));
   post_to('/ajaj/todo/edit', this, function(data){
     console.log($.toJSON(data));
     if (data.success) {
@@ -316,18 +319,18 @@ function MainList(title, lid, order) {
     $tabs.find(".ui-tabs-nav").sortable("refresh");
   }
   
-  if (lid === null) {
+  if (lid) {
+    this.lid=lid;
+    this.order=order;
+    _make_list();
+  } else {
     post_to('/ajaj/list/new', this,
       function (data) {
         console.log($.toJSON(data));
         if (data.success) {
-          this.lid = data.lid;
+          _list.lid = data.lid;
           _make_list();
         }});
-  } else {
-    this.lid=lid;
-    this.order=order;
-    _make_list();
   }
 };
 
@@ -475,7 +478,7 @@ MainList.prototype.update_progress = function () {
     items[item].lid = lid; /* set the new list */
 
     // send item update, with new list
-    change_todo(items[item], function() {}, function () {});
+    items[item].update(function() {}, function () {});
     // send order of old list and new list
     lists["tab_"+oldlist].update();
     lists[listelem].update();
