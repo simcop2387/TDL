@@ -14,8 +14,7 @@ $(function() {
   var $_email_dialog=$("#_email_dialog");
   var $_about_dialog=$("#_about_dialog");
   //var $_password_dialog=$("#_password_dialog");
-
-  var items=new Array();
+  
   var listman;
 
   var master_list_count=0;
@@ -44,12 +43,9 @@ function Task(title, lid, order, description, due, tid, finished) {
   this._list = listman.get_list(lid); // fetch our list
 
   var _task = this; // since this changes too fucking often
-  // TODO make this use external functions!
   var _make_task = function() {
-    items["todo_"+_task.tid]=_task; // TODO this should be removed!
     alive_todo++;
 
-    // TODO most of these should be calling methods, haven't written them or cleaned it yet
     _task._item = $('<li id="todo_'+_task.tid+'"></li>');
 
     _task._inner = $('<div class="ui-state-default ui-corner-all todo_inner" title="Drag me around"></div>');
@@ -214,7 +210,7 @@ Task.prototype._setup_arrows = function() {
 
 Task.prototype.delete = function(succeed) {
   /* delete a todo */
-  if (this.finished) // TODO this should be moved to ListManager
+  if (this.finished) // TODO this should be moved to ListManager?
       finished_todo--;
   alive_todo--;
   
@@ -347,14 +343,13 @@ MainList.prototype.toJSON = function() {
 }
 
 MainList.prototype.change_task = function(task) {
-  console.log("FOUND THIS DAMN IT", $.toJSON(task), $.toJSON(this)); // TODO remove this
   if (task.finished) {
     this._finished++;
-    finished_todo++; // TODO this should be in ListManager
+    finished_todo++; // TODO this should be in ListManager?
   }
   else {
     this._finished--;
-    finished_todo--; // TODO this should be in ListManager
+    finished_todo--; // TODO this should be in ListManager?
   }
 }
 
@@ -379,7 +374,6 @@ MainList.prototype.addtaskdialog = function() {
         if (!checktitle(title)) {
           dialog.find(".title").animate({backgroundColor: "red"}, 1000);
         } else {
-          //TODO i should be saving this in the list
           _list.add_task(new Task(title, _list.lid, _list.size, description));
           
           dialog.dialog("close");
@@ -415,7 +409,7 @@ MainList.prototype.update = function() {
     if (this._items[i].finished)
       this._finished++;
     
-    arr.push(this._items[i].tid); // TODO check into if i can drop this
+    arr.push(this._items[i].tid);
   }
 
   this.update_progress();
@@ -472,12 +466,21 @@ MainList.prototype.remove_task = function (task) {
   var _list = this;
   console.log("REMOVE_TASK: ", $.toJSON(task));
 
-  // TODO this should be a method
   _list._items.splice(task.order,1); // remove it
   _list.update(); // also calls update progress
   task.lid=null; // set it null so i can filter later
   task._list=null; // make sure it dies horribly
 }
+
+MainList.prototype.get_item = function(tid) {
+  var itemlength = this._items.length;
+  for (var i=0; i < itemlength; i++)
+    if (this._items[i].tid == tid)
+      return this._items[i];
+
+  return false;
+}
+
 
 /***************
  * END Main List Class
@@ -527,8 +530,7 @@ ListManager.prototype.setdroppable = function() {
       var $list = $( $item.find( "a" ).attr( "href" ) )
       .find( ".connectedSortable" );
 
-      // TODO this the the only blocker on ITEMS_REMOVAL I need an api to ListManager
-      var task = items[ui.draggable.attr("id")];
+      var task = listman.get_item(ui.draggable.attr("id"));
       var newlist = listman.get_list($item.find( "a" ).attr( "href" ));
       // i don't know what i want here, i think $item and $list are what i want but we'll see
 
@@ -549,9 +551,9 @@ ListManager.prototype.update_lists = function(event, ui) {
   var arr = new Array();
   var i=0;
   what.each(function() {
-    var id=$(this).attr("href").substr(1);
+    var id=$(this).attr("href").substr(5);
     listman.get_list(id).order=i++;
-    arr.push(listman.get_list(id).lid); // TODO can't i just take this from id?
+    arr.push(id);
   });
 
   post_to('/ajaj/list/order', {lists: arr}, function(data) {
@@ -587,7 +589,6 @@ ListManager.prototype.add_list_dialog = function() {
     if (!checktitle(title)) {
       dialog.find(".title").animate({backgroundColor: "red"}, 1000);
     } else {
-      // TODO switch this to saving inside here
       listman.add_list(new MainList(title));
       dialog.dialog("close");
     }
@@ -611,7 +612,6 @@ ListManager.prototype.get_list = function(lid) {
     // we've got an element id not a lid, fix it
     lid = lidstr.substr(4);
   } else if (lidstr.substr(0,5) == "#tab_") {
-    console.log("WARNING wrong type here!");
     lid = lidstr.substr(5);
   }
 
@@ -625,11 +625,21 @@ ListManager.prototype.add_list = function(list) {
 }
 
 ListManager.prototype.get_item = function(tid) {
+  var tidstr = ""+tid;
+  if (tidstr.substr(0,5) == "todo_") {
+    // we've got an element id not a lid, fix it
+    tid = tidstr.substr(5);
+  } else if (tidstr.substr(0,6) == "#todo_") {
+    tid = tidstr.substr(6);
+  }
+  
   for (var l in this.lists) {
     var item;
     if (item = this.lists[l].get_item(tid))
       return item;
   }
+
+  return null;
 }
 
   /**********************************************
@@ -672,9 +682,8 @@ ListManager.prototype.get_item = function(tid) {
         listman.add_list(templist);
       }
       for (var i in data.todos) {
-        var taskinf = data.todos[i]; // TODO this should also save them to the lists
+        var taskinf = data.todos[i];
         var temptodo = new Task(taskinf.title, taskinf.lid, taskinf.order, taskinf.description, taskinf.due, taskinf.tid, taskinf.finished);
-        // TODO Move this logic to the list classes
         listman.get_list(taskinf.lid).add_task(temptodo);
       }
     });
