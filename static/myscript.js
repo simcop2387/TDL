@@ -151,7 +151,6 @@ function Task(title, lid, order, description, due, tid, finished) {
     });
   };
 
-  console.log("DAMASCUS", tid);
   if (tid) {
     this.tid = tid;
     this.finished = finished;
@@ -160,8 +159,6 @@ function Task(title, lid, order, description, due, tid, finished) {
     // we need to fetch the ID! do this by creating it in the DB and getting it back
     post_to('/ajaj/todo/new', this,
       function (data) {
-        console.log("DISCUS!");
-        console.log($.toJSON(data));
         if (data.success) {
           _task.tid = data.tid;
           _make_task(_task);
@@ -240,7 +237,7 @@ Task.prototype.edit_dialog = function() {
           /* update li */
           var $li = $("#todo_"+_task.tid);
           var $desc = $("#todo_desc_"+_task.tid);
-          console.log($li.attr("id"));
+          //console.log($li.attr("id"));
           $li.find(".title").text(title);
           _task.title=title;
           _task.due = date;
@@ -290,7 +287,7 @@ function MainList(title, lid, order) {
   this._items=new Array();
   this._finished = 0;
 
-  console.log("ListConstructor: title="+title+" lid="+lid+" order="+order);
+  //console.log("ListConstructor: title="+title+" lid="+lid+" order="+order);
   var _list=this; // does this suck horribly in javascript?
   
   var _make_list = function () {
@@ -322,7 +319,7 @@ function MainList(title, lid, order) {
   } else {
     post_to('/ajaj/list/new', this,
       function (data) {
-        console.log($.toJSON(data));
+        //console.log($.toJSON(data));
         if (data.success) {
           _list.lid = data.lid;
           _make_list();
@@ -395,10 +392,10 @@ MainList.prototype.delete = function() {
 
 MainList.prototype.update = function() {
   //this was left over from the spaghetti code, never understood why it was happening.  shouldn't need it then or now.  will try removing it later
-  if (this == null || this.lid == null) {
-    console.log("WHO ARE YOU?"); // why do i need this? something down below triggers an update that causes this to shit itself. fun
-    return;
-  }
+//  if (this == null || this.lid == null) {
+//    console.log("WHO ARE YOU?"); // why do i need this? something down below triggers an update that causes this to shit itself. fun
+//    return;
+//  }
   
   var arr = new Array();
 
@@ -440,7 +437,6 @@ MainList.prototype.update_progress = function () {
     var $parent = listman.tabs.find('a[href="#tab_'+this.lid+'"]').parent();
 
     var p=100 * this._finished/this._items.length;
-    console.log(this._finished, this._items.length, p);
     $parent.progressbar("value", p);
     //$parent.find('.progress_text').text(""+Math.floor(p)+"%");
   }
@@ -450,7 +446,6 @@ MainList.prototype.update_progress = function () {
 
 MainList.prototype.add_task = function(task) {
   var $sortlist=$(".connectedSortable", "#tab_" + this.lid);
-  console.log("ADD_TASK: ", $.toJSON(task));
   task._item.appendTo($sortlist);
   //$sortlist.append(task._item);
   $sortlist.sortable("refresh");
@@ -464,7 +459,6 @@ MainList.prototype.add_task = function(task) {
 
 MainList.prototype.remove_task = function (task) {
   var _list = this;
-  console.log("REMOVE_TASK: ", $.toJSON(task));
 
   _list._items.splice(task.order,1); // remove it
   _list.update(); // also calls update progress
@@ -619,7 +613,7 @@ ListManager.prototype.get_list = function(lid) {
 }
 
 ListManager.prototype.add_list = function(list) {
-  console.log("ADD_LIST: "+list.lid);
+  //console.log("ADD_LIST: "+list.lid);
 
   return this.lists[list.lid] = list; // return our list also
 }
@@ -658,7 +652,7 @@ ListManager.prototype.get_item = function(tid) {
   function get_login_challenge(username, success, error) {
     $.get('/ajaj/login', {data: $.toJSON({username: username})},
       function (data) {
-        console.log($.toJSON(data));
+        //console.log($.toJSON(data));
         if (data.success) {
           success(data);
         } else {
@@ -675,7 +669,6 @@ ListManager.prototype.get_item = function(tid) {
       // I will do that on the database! that'll make it so fucking easy!
       for (var i in data.lists) {
         var listinf = data.lists[i];
-        console.log("GOTLIST: title="+listinf.title+" lid="+listinf.lid+" order="+listinf.order);
         var templist = new MainList(listinf.title, listinf.lid, listinf.order);
         templist.update_progress();
         // TODO this needs to check for parent/child relationships
