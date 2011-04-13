@@ -4,7 +4,6 @@ if (console == null) {
 }
 
 $(function() {
-  var $tabs;
   var $_tabs=$("#_tabs");
   var $_tab=$("#_tab");
   var $hidden=$("#hidden");
@@ -16,10 +15,9 @@ $(function() {
   var $_about_dialog=$("#_about_dialog");
   //var $_password_dialog=$("#_password_dialog");
   
-  var lists=new Array();
-  var items=new Array();
+  var listman;
 
-  var list_count=0;
+  var master_list_count=0;
   var alive_todo=0;
   var finished_todo=0;
   var username=null; // needed for changing it later!
@@ -29,139 +27,621 @@ $(function() {
     lists_id = list; items_id = item;
   }
 
+/***
+ * Task Class
+ ***/
+
+function Task(title, lid, order, description, due, tid, finished) {
+  this.title = title;
+  this.lid = lid;
+  this.order = order;
+  this.finished=false;
+  this.due = due;
+  this.description = description;
+  this._inner = null;
+  this._item = null;
+  this._list = listman.get_list(lid); // fetch our list
+
+  var _task = this; // since this changes too fucking often
+  var _make_task = function() {
+    alive_todo++;
+
+    _task._item = $('<li id="todo_'+_task.tid+'"></li>');
+
+    _task._inner = $('<div class="ui-state-default ui-corner-all todo_inner" title="Drag me around"></div>');
+    
+    var $desc = $('<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+_task.tid+'"></div>');
+
+    var $icon = $('<span class="arrows ui-icon" title="Expand description"></span>');
+
+    _task._inner.append($icon);
+    _task._inner.append('<span class="pullleft ui-icon ui-icon-circle-check" title="Finish todo">Finish todo</span>'+
+                  '<span class="title">'+_task.title+'</span>'+
+                  '<span class="pullright ui-icon ui-icon-close" title="Delete todo">Delete todo</span>'+
+                  '<span class="pullright ui-icon ui-icon-pencil" title="Edit todo">Edit todo</span>');
+
+    _task._item.append(_task._inner);
+    _task._item.append($desc);
+
+    $desc.hide();
+    
+    if (_task.description) {
+      $desc.text(_task.description);
+    }
+
+    var $arrows = $('div:first .arrows', '#todo_'+_task.tid);
+
+    var hidedesc = function () {
+      $arrows.removeClass('ui-icon-triangle-1-s')
+             .addClass('ui-icon-triangle-1-e');
+
+      $desc.hide("slide",{ direction: "up" },500);
+      _task._inner.unbind("dblclick");
+      _task._inner.dblclick(showdesc);
+      $arrows.unbind("click");
+      $arrows.click(showdesc);
+    };
+
+    var showdesc = function () {
+      if (_task.description) {
+        $arrows.removeClass('ui-icon-triangle-1-e')
+               .addClass('ui-icon-triangle-1-s');
+
+        $desc.show("slide",{ direction: "up" },500);
+        _task._inner.unbind("dblclick");
+        _task._inner.dblclick(hidedesc);
+        $arrows.unbind("click");
+        $arrows.click(hidedesc);
+      }
+    };
+
+    _task._inner.dblclick(showdesc);
+    $arrows.click(showdesc);
+
+    var check=_task._inner.find(".ui-icon-circle-check");
+    var finishme=function() {
+      _task.finished=true;
+      _task._list.change_task(_task);
+
+      /* send updates */
+      _task.update(function() {
+        _task._inner.removeClass("ui-state-default").addClass("ui-state-highlight");
+        check.unbind('click');
+        check.click(unfinishme);
+      },
+      function () {
+        _task.finished=false;
+        _task._list.change_task(_task);
+      });
+    };
+
+    var unfinishme=function() {
+      _task.finished=false;
+      _task._list.change_task(_task);
+
+      _task.update(function() {
+        _task._inner.removeClass("ui-state-highlight").addClass("ui-state-default");
+        check.unbind('click');
+        check.click(finishme);
+      },
+      function () {
+        _task.finished=true;
+        _task._list.change_task(_task);
+      });
+    };
+
+    if (_task.finished) {
+      _task._inner.removeClass("ui-state-default").addClass("ui-state-highlight");
+      check.click(unfinishme);
+      _task._list.change_task(_task);
+    } else {
+      check.click(finishme);
+    }
+
+    _task._inner.find("span.ui-icon-close").click(function() {
+      _task.delete(function () {
+        listman.get_list(_task.lid).remove_task(_task);
+        _task._item.hide("slow");
+        _task._inner.hide("slow");
+      });
+    });
+
+    _task._inner.find("span.ui-icon-pencil").click(function() {
+      _task.edit_dialog();
+    });
+  };
+
+  if (tid) {
+    this.tid = tid;
+    this.finished = finished;
+    _make_task();
+  } else {
+    // we need to fetch the ID! do this by creating it in the DB and getting it back
+    post_to('/ajaj/todo/new', this,
+      function (data) {
+        if (data.success) {
+          _task.tid = data.tid;
+          _make_task(_task);
+        }
+      });
+  }
+};
+
+Task.prototype.toJSON = function() {
+  var serial = {};
+
+  for (var key in this) {
+    // ignore things that are "private" (begins with _), or are unserializable
+    if (key.substr(0,1) != "_" && typeof this[key] != "function") {
+      serial[key] = this[key]; // makes a copy of it
+    }
+  };
+  return serial;
+}
+
+Task.prototype.update = function(callback, errorback) {
+  listman.get_list(this.lid).update_progress();
+  //console.log($.toJSON(this));
+  post_to('/ajaj/todo/edit', this, function(data){
+    console.log($.toJSON(data));
+    if (data.success) {
+      callback(data)
+    } else {
+      errorback(data)
+    }
+  });
+}
+
+Task.prototype._setup_arrows = function() {
+  var $arrows = $('div:first .arrows', '#todo_'+this.tid);
+
+  if (this.description) {
+    $arrows.addClass('ui-icon-triangle-1-e')
+    .removeClass('hide-icon');
+  } else {
+    $arrows.removeClass('ui-icon-triangle-1-e')
+    .removeClass('ui-icon-triangle-1-s')
+    .addClass('hide-icon');
+  }
+}
+
+Task.prototype.delete = function(succeed) {
+  /* delete a todo */
+  if (this.finished) // TODO this should be moved to ListManager?
+      finished_todo--;
+  alive_todo--;
+  
+  post_to('/ajaj/todo/delete', this, succeed); // TODO we don't need no stinking confirmation
+}
+
+Task.prototype.edit_dialog = function() {
+  var dialog = $_add_dialog.clone();
+  var _task = this; // save it for the callbacks
+
+  dialog.attr("id", null); // clear the id
+  $("body").append(dialog);
+  dialog.dialog({
+    title: "Edit this todo",
+    close: function() {
+      dialog.remove();
+    },
+    buttons: [
+      {text: "Save Changes", click: function() {
+        var title = dialog.find(".title").val();
+        var date = dialog.find(".datepicker").val();
+        var description = dialog.find(".description").val();
+
+        if (!checktitle(title)) {
+          dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+        } else {
+          /* update li */
+          var $li = $("#todo_"+_task.tid);
+          var $desc = $("#todo_desc_"+_task.tid);
+          //console.log($li.attr("id"));
+          $li.find(".title").text(title);
+          _task.title=title;
+          _task.due = date;
+          _task.description=description;
+          $desc.text(description);
+
+          _task._setup_arrows();
+
+          _task.update(function() {
+            dialog.dialog("close");
+          },
+          function () {
+            /*display error!*/
+          });
+        }
+      }},
+      {text: "Cancel", click: function(){dialog.dialog("close")}}
+    ]
+  });
+
+  dialog.find(".datepicker").datepicker();
+  dialog.find(".datepicker").val(_task.due);
+  dialog.find(".title").val(_task.title);
+  dialog.find(".description").val(_task.description);
+}
+
+Task.prototype.change_list = function(newlist) {
+  if (newlist == null)
+    return;
+
+  this._list.remove_task(this);
+  newlist.add_task(this);
+
+  // send item update, with new list
+  this.update(function() {}, function () {}); // TODO we don't need no confirmation
+}
+
+/***********************
+ *Main List type Class *
+ ***********************/
+
+function MainList(title, lid, order) {
+  this.title=title;
+  this.lid=null;
+  this.size=0;
+  this.order=master_list_count++;
+  this._items=new Array();
+  this._finished = 0;
+
+  //console.log("ListConstructor: title="+title+" lid="+lid+" order="+order);
+  var _list=this; // does this suck horribly in javascript?
+  
+  var _make_list = function () {
+    var newtab=$_tab.clone();
+    var sortable=newtab.find("ul");
+
+    newtab.attr("id","tab_"+_list.lid);
+    newtab.find('.additem').button().click(function(){
+      /* they asked to make a new item! */
+      _list.addtaskdialog(); // call the dialog method here
+      $(this).blur();
+    });
+
+    sortable.sortable({
+      update: function(event, ui) {
+        _list.update();
+      }
+    });
+
+    sortable.disableSelection();
+
+    listman.addlist(newtab, _list);
+  }
+  
+  if (lid) {
+    this.lid=lid;
+    this.order=order;
+    _make_list();
+  } else {
+    post_to('/ajaj/list/new', this,
+      function (data) {
+        //console.log($.toJSON(data));
+        if (data.success) {
+          _list.lid = data.lid;
+          _make_list();
+        }});
+  }
+};
+
+MainList.prototype.toJSON = function() {
+    var serial = {};
+
+    for (var key in this) {
+      // ignore things that are "private" (begins with _), or are unserializable
+          if (key.substr(0,1) != "_" && typeof this[key] != "function") {
+            serial[key] = this[key]; // makes a copy of it
+          }
+    };
+    return serial;
+}
+
+MainList.prototype.change_task = function(task) {
+  if (task.finished) {
+    this._finished++;
+    finished_todo++; // TODO this should be in ListManager?
+  }
+  else {
+    this._finished--;
+    finished_todo--; // TODO this should be in ListManager?
+  }
+}
+
+MainList.prototype.addtaskdialog = function() {
+  var dialog = $_add_dialog.clone();
+  var _list = this; // save an alias of the object
+
+  dialog.attr("id", null); // clear the id
+  $("body").append(dialog);
+
+  dialog.dialog({
+    close: function() {
+      dialog.remove();
+    },
+    buttons: [
+      {text: "Save Changes",
+      click: function() {
+        var title = dialog.find(".title").val();
+        var date = dialog.find(".datepicker").val();
+        var description = dialog.find(".description").val();
+
+        if (!checktitle(title)) {
+          dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+        } else {
+          _list.add_task(new Task(title, _list.lid, _list.size, description));
+          
+          dialog.dialog("close");
+        }
+        }},
+      {text: "Cancel", click: function(){dialog.dialog("close")}}
+    ]});
+
+  dialog.find(".datepicker").datepicker();
+}
+
+MainList.prototype.delete = function() {
+  var _list=this;
+  if (this.size == 0)
+    post_to('/ajaj/list/delete', this, function () {
+      listman.remove_list(_list);
+    }); // TODO we don't need no stinking confirmation
+};
+
+MainList.prototype.update = function() {
+  //this was left over from the spaghetti code, never understood why it was happening.  shouldn't need it then or now.  will try removing it later
+//  if (this == null || this.lid == null) {
+//    console.log("WHO ARE YOU?"); // why do i need this? something down below triggers an update that causes this to shit itself. fun
+//    return;
+//  }
+  
+  var arr = new Array();
+
+  this._finished=0;
+  var itemlength = this._items.length;
+  for (var i=0; i < itemlength; i++) {
+    this._items[i].order=i;
+    if (this._items[i].finished)
+      this._finished++;
+    
+    arr.push(this._items[i].tid);
+  }
+
+  this.update_progress();
+
+  /* TODO fuck i don't understand my own code... why doesn't this require a list?
+     I suspect because I just ignore them in the backend... */
+  /* send ajax post for mylist and arr */
+  post_to('/ajaj/todo/order', {todos: arr}, function(data) {
+    if (!data.success) {
+      console.log("ORDER ERROR: ", data.message);
+    }
+  }); // we're going to "silently" ignore errors here due to the fact that it only puts things out of sync and all data is still around
+};
+
+MainList.prototype.update_progress = function () {
+  //console.log("inprogress", $.toJSON(this));
+  // this was left from the old sphagetti code, shouldn't need it
+  if (this == null) // i've got a bug or two in here and i don't understand them
+    return;
+
+  if (this._items.length == 0) { // don't try to divide by 0
+    // TODO needs to be a method rather than fucking with the stuff itself
+    var $parent = listman.tabs.find('a[href="#tab_'+this.lid+'"]').parent();
+    $parent.progressbar("value", 0);
+    //$parent.find('.progress_text').text(""); // we have nothing in the list
+  } else {
+    // TODO needs to be a method rather than fucking with the stuff itself
+    var $parent = listman.tabs.find('a[href="#tab_'+this.lid+'"]').parent();
+
+    var p=100 * this._finished/this._items.length;
+    $parent.progressbar("value", p);
+    //$parent.find('.progress_text').text(""+Math.floor(p)+"%");
+  }
+
+  update_master_progress();
+};
+
+MainList.prototype.add_task = function(task) {
+  var $sortlist=$(".connectedSortable", "#tab_" + this.lid);
+  task._item.appendTo($sortlist);
+  //$sortlist.append(task._item);
+  $sortlist.sortable("refresh");
+  task.lid = this.lid;
+  task._list = this; // so we can use it for moving tasks
+  task.order = this._items.length;
+  task._setup_arrows();
+  this._items.push(task); // add it to the list of items
+  this.update();
+}
+
+MainList.prototype.remove_task = function (task) {
+  var _list = this;
+
+  _list._items.splice(task.order,1); // remove it
+  _list.update(); // also calls update progress
+  task.lid=null; // set it null so i can filter later
+  task._list=null; // make sure it dies horribly
+}
+
+MainList.prototype.get_item = function(tid) {
+  var itemlength = this._items.length;
+  for (var i=0; i < itemlength; i++)
+    if (this._items[i].tid == tid)
+      return this._items[i];
+
+  return false;
+}
+
+
+/***************
+ * END Main List Class
+ */
+/**************
+ * ListManager Class
+ */
+
+function ListManager() {
+  /*this should do something*/
+  this.tabs = $_tabs.clone();
+  this.lists = {}; // Use an object/associative array, for memory
+      
+  this.tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close' title='Remove list'>Remove List</span></li>"})
+      .addClass('ui-tabs-vertical ui-helper-clearfix')
+      .find('.ui-tabs-nav').sortable({axis: "y", update: function(event, ui) {listman.update_lists(event,ui)}});
+      
+  this.tabs.removeClass('ui-widget-content');
+  $(".content").html("").append(this.tabs);
+  this.make_listbutt();
+};
+
+ListManager.prototype.addlist = function(htmlelement, listobj) {
+  this.tabs.prepend(htmlelement);
+  this.tabs.tabs("add", "#tab_"+listobj.lid, listobj.title);
+  
+  this.tabs.find('a[href="#tab_'+listobj.lid+'"]').parent().progressbar({value: 0});
+  
+  this.tabs.find('a[href="#tab_'+listobj.lid+'"]').parent().find(".ui-icon-close").click(function () {
+      listobj.delete();
+  });
+  
+  this.setdroppable();
+  this.tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
+  this.tabs.find(".ui-tabs-nav").sortable("refresh");
+};
+
+ListManager.prototype.setdroppable = function() {
+  var $tab_items = $( "ul:first li", this.tabs );
+  $tab_items.droppable("destroy");
+  $tab_items.droppable({
+    tolerance: 'pointer',
+    accept: ".connectedSortable li",
+    hoverClass: "ui-state-hover",
+    drop: function( event, ui ) {
+      var $item = $( this );
+      var $list = $( $item.find( "a" ).attr( "href" ) )
+      .find( ".connectedSortable" );
+
+      var task = listman.get_item(ui.draggable.attr("id"));
+      var newlist = listman.get_list($item.find( "a" ).attr( "href" ));
+      // i don't know what i want here, i think $item and $list are what i want but we'll see
+
+      ui.draggable.hide("slow", function() {
+        ui.draggable.appendTo($list).show();
+        task.change_list(newlist);
+      });
+    }
+  });
+}
+
+ListManager.prototype.update_lists = function(event, ui) {
+  /* send new order of lists */
+
+  var nav=this.tabs.find(".ui-tabs-nav");
+  var what=nav.find('li a');
+
+  var arr = new Array();
+  var i=0;
+  what.each(function() {
+    var id=$(this).attr("href").substr(5);
+    listman.get_list(id).order=i++;
+    arr.push(id);
+  });
+
+  post_to('/ajaj/list/order', {lists: arr}, function(data) {
+    if (!data.success) {
+      console.log("ORDER ERROR: ", data.message);
+    }
+  });
+}
+
+ListManager.prototype.make_listbutt = function() {
+  var butt = $("<button class='addlist'>Add new list</button>");
+  this.tabs.find('ul.ui-tabs-nav button').remove();
+  this.tabs.find('ul.ui-tabs-nav').append(butt);
+  var _lm = this;
+  // insert code here about butts
+  butt.button();
+  butt.click(function () {_lm.add_list_dialog()})
+}
+
+ListManager.prototype.remove_list = function(list) {
+  listman.tabs.tabs("remove", list.order);
+  listman.update_lists(); // update all the orders and get it all synced properly
+}
+
+ListManager.prototype.add_list_dialog = function() {
+  var dialog = $_add_list_dialog.clone();
+  dialog.attr("id", null); // clear the id
+  $("body").append(dialog);
+
+  var savelist = function () {
+    var title = dialog.find(".title").val();
+
+    if (!checktitle(title)) {
+      dialog.find(".title").animate({backgroundColor: "red"}, 1000);
+    } else {
+      listman.add_list(new MainList(title));
+      dialog.dialog("close");
+    }
+  }
+    
+  dialog.dialog({
+    close: function() {
+      dialog.remove();
+    },
+    buttons: [
+      {text: "Add List", click: savelist},
+      {text: "Cancel", click: function () {dialog.remove()}}
+    ]
+  });
+}
+
+ListManager.prototype.get_list = function(lid) {
+  //console.log("GET_LIST: "+lid);
+  var lidstr = ""+lid;
+  if (lidstr.substr(0,4) == "tab_") {
+    // we've got an element id not a lid, fix it
+    lid = lidstr.substr(4);
+  } else if (lidstr.substr(0,5) == "#tab_") {
+    lid = lidstr.substr(5);
+  }
+
+  return this.lists[lid];
+}
+
+ListManager.prototype.add_list = function(list) {
+  //console.log("ADD_LIST: "+list.lid);
+
+  return this.lists[list.lid] = list; // return our list also
+}
+
+ListManager.prototype.get_item = function(tid) {
+  var tidstr = ""+tid;
+  if (tidstr.substr(0,5) == "todo_") {
+    // we've got an element id not a lid, fix it
+    tid = tidstr.substr(5);
+  } else if (tidstr.substr(0,6) == "#todo_") {
+    tid = tidstr.substr(6);
+  }
+  
+  for (var l in this.lists) {
+    var item;
+    if (item = this.lists[l].get_item(tid))
+      return item;
+  }
+
+  return null;
+}
+
   /**********************************************
   * Event callbacks                             *
   **********************************************/
 
-  function update_lists(event, ui) {
-    /* send new order of lists */
-
-    var nav=$tabs.find(".ui-tabs-nav");
-    var what=nav.find('li a');
-
-    var arr = new Array();
-    var i=0;
-    what.each(function() {
-      var id=$(this).attr("href").substr(1);
-      lists[id].order=i++;
-      arr.push(lists[id].lid);
-    });
-    
-    post_to('/ajaj/list/order', {lists: arr}, function(data) {
-      if (!data.success) {
-        console.log("ORDER ERROR: ", data.message);
-      }
-    });
-  }
-
-  function update_list(mylist) {
-    /* update the order of a single list */
-    if (mylist == null || mylist.lid == null) {
-      console.log("WHO ARE YOU?"); // why do i need this? something down below triggers an update that causes this to shit itself. fun
-      return; 
-    }
-    var lid=mylist.lid; // who are we checking?
-    var what=$("#tab_"+lid+" li");
-    var arr = new Array();
-
-    var i=0;
-    what.each(function() {
-      var id=$(this).attr("id");
-      //console.log("ARG: ", $(this).attr("id"));
-      items[id].order=i++;
-      arr.push(items[id].tid);
-    });
-
-    mylist.size=i;
-    update_list_progress(mylist);
-    
-    /* send ajax post for mylist and arr */
-    post_to('/ajaj/todo/order', {todos: arr}, function(data) {
-      if (!data.success) {
-        console.log("ORDER ERROR: ", data.message);
-      }
-    }); // we're going to "silently" ignore errors here due to the fact that it only puts things out of sync and all data is still around
-  }
-
-  function change_list($item, listelem) {
-    if ($item == null || listelem == null)
-      return;
-    
-    /* send new order of lists */
-    /* listelem is the new list */
-    var item = $item.attr("id");
-    var lid = lists[listelem].lid;
-    var oldlist = items[item].lid;
-
-    //console.log("change_list", item, lid, oldlist);
-
-    items[item].lid = lid; /* set the new list */
-
-    // send item update, with new list
-    change_todo(items[item], function() {}, function () {});
-    // send order of old list and new list
-    update_list(lists["tab_"+oldlist]);
-    update_list(lists[listelem]);
-  }
-
-  function new_list(mylist, callback, errorback) {
-    /* send new list */
-    post_to('/ajaj/list/new', mylist,
-            function (data) {
-              if (data.success) {
-                callback(data)
-              } else {
-                errorback(data)
-              }
-            });
-  }
-
-  function delete_list(mylist, succeed) {
-    /* delete a todo */
-    post_to('/ajaj/list/delete', mylist, succeed); // TODO we don't need no stinking confirmation
-  }
-  
-  function change_todo(myitem, callback, errorback) {
-    /* send the todo finish or unfinish event */
-    update_list_progress(lists["tab_"+myitem.lid]);
-    post_to('/ajaj/todo/edit', myitem, function(data){
-      console.log($.toJSON(data));
-      if (data.success) {
-        callback(data)
-      } else {
-        errorback(data)
-      }
-    });
-  }
-
-  function new_todo(mylist, callback, errorback) {
-    /* send new todo */
-    post_to('/ajaj/todo/new', mylist,
-            function (data) {
-              if (data.success) {
-                callback(data)
-              } else {
-                errorback(data)
-              }
-            });
-  }
-
-  function delete_todo(myitem, succeed) {
-    /* delete a todo */
-    post_to('/ajaj/todo/delete', myitem, succeed); // TODO we don't need no stinking confirmation
-  }
-
   function finish_login() {
-    
-    $tabs = $_tabs.clone();
-    
-    $tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close' title='Remove list'>Remove List</span></li>"})
-         .addClass('ui-tabs-vertical ui-helper-clearfix')
-         .find('.ui-tabs-nav').sortable({axis: "y", update: update_lists});
-
-    $tabs.removeClass('ui-widget-content');
-    $(".content").html("").append($tabs);
-    make_listbutt();
+    listman = new ListManager();
     get_data();
 
     $("#chemail").click(email_dialog);
@@ -172,7 +652,7 @@ $(function() {
   function get_login_challenge(username, success, error) {
     $.get('/ajaj/login', {data: $.toJSON({username: username})},
       function (data) {
-        console.log($.toJSON(data));
+        //console.log($.toJSON(data));
         if (data.success) {
           success(data);
         } else {
@@ -188,11 +668,16 @@ $(function() {
       // TODO I NEED TO SORT THESE BASED ON .order OR THE DAMNED THING IS USELESS
       // I will do that on the database! that'll make it so fucking easy!
       for (var i in data.lists) {
-        _make_list(data.lists[i]);
-        update_list_progress(lists["tab_"+data.lists[i].lid]);
+        var listinf = data.lists[i];
+        var templist = new MainList(listinf.title, listinf.lid, listinf.order);
+        templist.update_progress();
+        // TODO this needs to check for parent/child relationships
+        listman.add_list(templist);
       }
       for (var i in data.todos) {
-        _make_todo(data.todos[i]);
+        var taskinf = data.todos[i];
+        var temptodo = new Task(taskinf.title, taskinf.lid, taskinf.order, taskinf.description, taskinf.due, taskinf.tid, taskinf.finished);
+        listman.get_list(taskinf.lid).add_task(temptodo);
       }
     });
   }
@@ -338,112 +823,6 @@ $(function() {
     $emailaddr.keypress(enterfunc);
   }
 
-  function add_list_dialog() {
-    var dialog = $_add_list_dialog.clone();
-    dialog.attr("id", null); // clear the id
-    $("body").append(dialog);
-
-    var savelist = function () {
-      var title = dialog.find(".title").val();
-
-      if (!checktitle(title)) {
-        dialog.find(".title").animate({backgroundColor: "red"}, 1000);
-      } else {
-        make_list(title);
-        dialog.dialog("close");
-      }
-    }
-
-    dialog.dialog({
-      close: function() {
-        dialog.remove();
-      },
-      buttons: [
-        {text: "Add List", click: savelist},
-        {text: "Cancel", click: function () {dialog.remove()}}
-      ]
-    });
-  }
-  
-  function add_todo_dialog(list) {
-    var dialog = $_add_dialog.clone();
-
-    dialog.attr("id", null); // clear the id
-    $("body").append(dialog);
-    dialog.dialog({
-      close: function() {
-        dialog.remove();
-      },
-      buttons: [
-        {text: "Save Changes", click: function() {
-          var title = dialog.find(".title").val();
-          var date = dialog.find(".datepicker").val();
-          var description = dialog.find(".description").val();
-
-          if (!checktitle(title)) {
-            dialog.find(".title").animate({backgroundColor: "red"}, 1000);
-          } else {
-            make_todo(list.lid, title, date, description);
-            dialog.dialog("close");
-          }
-        }},
-        {text: "Cancel", click: function(){dialog.dialog("close")}}
-      ]
-    });
-
-    dialog.find(".datepicker").datepicker();
-  }
-
-  function edit_todo_dialog(myitem) {
-    var dialog = $_add_dialog.clone();
-
-    dialog.attr("id", null); // clear the id
-    $("body").append(dialog);
-    dialog.dialog({
-      title: "Edit this todo",
-      close: function() {
-        dialog.remove();
-      },
-      buttons: [
-        {text: "Save Changes", click: function() {
-          var title = dialog.find(".title").val();
-          var date = dialog.find(".datepicker").val();
-          var description = dialog.find(".description").val();
-
-          if (!checktitle(title)) {
-            dialog.find(".title").animate({backgroundColor: "red"}, 1000);
-          } else {
-
-            /* update li */
-            var $li = $("#todo_"+myitem.tid);
-            var $desc = $("#todo_desc_"+myitem.tid);
-            console.log($li.attr("id"));
-            $li.find(".title").text(title);
-            myitem.title=title;
-            myitem.due = date;
-            myitem.description=description;
-            $desc.text(description);
-            
-            _setup_todo_arrows(myitem);
-
-            change_todo(myitem, function() {
-              dialog.dialog("close");
-            },
-            function () {
-              /*display error!*/
-            });
-          }
-        }},
-        {text: "Cancel", click: function(){dialog.dialog("close")}}
-      ]
-    });
-
-    dialog.find(".datepicker").datepicker();
-    dialog.find(".datepicker").val(myitem.due);
-    dialog.find(".title").val(myitem.title);
-    dialog.find(".description").val(myitem.description);
-  }
-
   /**********************************************
   * Misc. functions                             *
   **********************************************/
@@ -481,34 +860,6 @@ $(function() {
     //$.post(url, {"data": $.toJSON(data)}, , "json");
   }
 
-  function update_list_progress(mylist) {
-    //console.log("inprogress", $.toJSON(mylist));
-    if (mylist == null) // i've got a bug or two in here and i don't understand them
-      return;
-
-    if (mylist.size == 0) { // don't try to divide by 0
-      var $parent = $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent();
-      $parent.progressbar("value", 0);
-      //$parent.find('.progress_text').text(""); // we have nothing in the list
-    } else {
-      var $parent = $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent();
-      var lid=mylist.lid; // who are we checking?
-      var what=$("#tab_"+lid+" li");
-
-      var n=0;
-      what.each(function() {
-        var id=$(this).attr("id");
-        if (items[id].finished)
-          n++;
-      });
-      var p=100 * n/mylist.size;
-      $parent.progressbar("value", p);
-      //$parent.find('.progress_text').text(""+Math.floor(p)+"%");
-    }
-
-    update_master_progress();
-  }
-
   function update_master_progress() {
     var $mainprog = $("#mainprogress");
     if (alive_todo==0) {
@@ -521,245 +872,6 @@ $(function() {
   /**********************************************
   * Creation functions                          *
   **********************************************/
-  function make_todo(list, title, due, description) {
-    var myitem={title: title, tid: null, due: due, lid: list, finished: false, order: lists["tab_"+list].size, description: description};
-    
-    // we need to fetch the ID! do this by creating it in the DB and getting it back
-    new_todo(myitem,
-             function (data) {
-               console.log($.toJSON(data));
-               myitem.tid = data.tid;
-               _make_todo(myitem);
-             },
-             function (data) {
-               console.log($.toJSON(data));
-             });
-  };
-
-  function _setup_todo_arrows(myitem) {
-    var $arrows = $('div:first .arrows', '#todo_'+myitem.tid);
-    
-    if (myitem.description) {
-      $arrows.addClass('ui-icon-triangle-1-e')
-             .removeClass('hide-icon');
-    } else {
-      $arrows.removeClass('ui-icon-triangle-1-e')
-             .removeClass('ui-icon-triangle-1-s')
-             .addClass('hide-icon');
-    }
-  }
-  
-  function _make_todo(myitem) {
-    console.log($.toJSON(myitem));
-    lists["tab_"+myitem.lid].size++;
-    items["todo_"+myitem.tid]=myitem;
-    alive_todo++;
-
-    var $sortlist=$(".connectedSortable", "#tab_" + myitem.lid);
-    var $item = $('<li id="todo_'+myitem.tid+'"></li>');
-    
-    var $inner = $('<div class="ui-state-default ui-corner-all todo_inner" title="Drag me around"></div>');
-    var $desc = $('<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" id="todo_desc_'+myitem.tid+'"></div>');
-
-    var $icon = $('<span class="arrows ui-icon" title="Expand description"></span>');
-
-    $inner.append($icon);
-    $inner.append('<span class="pullleft ui-icon ui-icon-circle-check" title="Finish todo">Finish todo</span>'+
-                  '<span class="title">'+myitem.title+'</span>'+
-                  '<span class="pullright ui-icon ui-icon-close" title="Delete todo">Delete todo</span>'+
-                  '<span class="pullright ui-icon ui-icon-pencil" title="Edit todo">Edit todo</span>');
-    
-    $item.append($inner);
-    $item.append($desc);
-
-    $desc.hide();
-
-    //myitem.desc="foo";
-    if (myitem.description) {
-      $desc.text(myitem.description);
-    }
-
-    var $arrows = $('div:first .arrows', '#todo_'+myitem.tid);
-    
-    var hidedesc = function () {
-      $arrows.removeClass('ui-icon-triangle-1-s')
-             .addClass('ui-icon-triangle-1-e');
-      
-      $desc.hide("slide",{ direction: "up" },500);
-      $inner.unbind("dblclick");
-      $inner.dblclick(showdesc);
-      $arrows.unbind("click");
-      $arrows.click(showdesc);
-    };
-    
-    var showdesc = function () {
-      if (myitem.description) {
-        $arrows.removeClass('ui-icon-triangle-1-e')
-               .addClass('ui-icon-triangle-1-s');
-
-        $desc.show("slide",{ direction: "up" },500);
-        $inner.unbind("dblclick");
-        $inner.dblclick(hidedesc);
-        $arrows.unbind("click");
-        $arrows.click(hidedesc);
-      }
-    };
-    
-    $inner.dblclick(showdesc);
-    $arrows.click(showdesc);
-    
-    var check=$inner.find(".ui-icon-circle-check");
-    var finishme=function() {
-      myitem.finished=true;
-      finished_todo++;
-
-      /* send updates */
-      change_todo(myitem, function() {
-        $inner.removeClass("ui-state-default").addClass("ui-state-highlight");
-        check.unbind('click');
-        check.click(unfinishme);
-      },
-      function () {
-        finished_todo--;
-        myitem.finished=false;
-      });
-    };
-
-    var unfinishme=function() {
-      myitem.finished=false;
-      finished_todo--;
-      
-      change_todo(myitem, function() {
-        $inner.removeClass("ui-state-highlight").addClass("ui-state-default");
-        check.unbind('click');
-        check.click(finishme);
-      },
-      function () {
-        myitem.finished=true;
-        finished_todo++;
-      });
-    };
-
-    if (myitem.finished) {
-      $inner.removeClass("ui-state-default").addClass("ui-state-highlight");
-      check.click(unfinishme);
-      finished_todo++;
-    } else {
-      check.click(finishme); 
-    }
-
-    $inner.find("span.ui-icon-close").click(function() {
-      delete_todo(myitem, function () {
-        $inner.hide("slow", function () {
-          $item.remove();
-
-          if (myitem.finished)
-            finished_todo--;
-          alive_todo--;
-
-          lists["tab_"+myitem.lid].size--;
-          update_list_progress(lists["tab_"+myitem.lid]);
-          myitem.lid=null; // set it null so i can filter later
-        })
-      });
-    });
-
-    $inner.find("span.ui-icon-pencil").click(function() {
-      edit_todo_dialog(myitem);
-    });
-
-    $sortlist.append($item);
-
-    $sortlist.sortable("refresh");
-    _setup_todo_arrows(myitem); // setup the arrows
-    update_list_progress(lists["tab_"+myitem.lid]);
-  };
-
-  function setdroppable() {
-    var $tab_items = $( "ul:first li", $tabs );
-    $tab_items.droppable("destroy");
-    $tab_items.droppable({
-      tolerance: 'pointer',
-      accept: ".connectedSortable li",
-      hoverClass: "ui-state-hover",
-      drop: function( event, ui ) {
-        var $item = $( this );
-        var $list = $( $item.find( "a" ).attr( "href" ) )
-                    .find( ".connectedSortable" );
-        // i don't know what i want here, i think $item and $list are what i want but we'll see
-
-        ui.draggable.hide( "slow", function() {
-          ui.draggable.appendTo( $list ).show();
-          change_list(ui.draggable, $item.find( "a" ).attr( "href" ).substr(1));
-        });
-      }
-    });
-  }
-
-  function make_listbutt() {
-    var butt = $("<button class='addlist'>Add new list</button>");
-    $tabs.find('ul.ui-tabs-nav button').remove();
-    $tabs.find('ul.ui-tabs-nav').append(butt);
-    // insert code here about butts
-    butt.button();
-    butt.click(function () {add_list_dialog()})
-  }
-
-  function make_list(title) {
-    var mylist={id: null, title: title, size: 0, order: list_count};
-
-    // we need to fetch the ID! do this by creating it in the DB and getting it back
-    new_list(mylist,
-      function (data) {
-        console.log($.toJSON(data));
-        mylist.lid = data.lid;
-        _make_list(mylist);
-      },
-      function (data) {
-        console.log($.toJSON(data));
-    });
-  };
-
-  function _make_list(mylist) {
-    list_count++; // increment this, used for naively ordering
-    console.log($.toJSON(mylist));
-    mylist.size=0; // make sure the size exists, it'll always be 0
-    lists["tab_"+mylist.lid]=mylist;
-
-    var newtab=$_tab.clone();
-    var sortable=newtab.find("ul");
-
-    newtab.attr("id","tab_"+mylist.lid);
-    newtab.find('.additem').button().click(function(){
-      /* they asked to make a new item! */
-      add_todo_dialog(mylist);
-      $(this).blur();
-    });
-    
-    sortable.sortable({
-      update: function(event, ui) {
-        update_list(mylist);
-      }
-    });
-    
-    sortable.disableSelection();
-
-    $tabs.prepend(newtab);
-    $tabs.tabs("add", "#tab_"+mylist.lid, mylist.title);
-    
-    $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().progressbar({value: 0});
-    
-    $tabs.find('a[href="#tab_'+mylist.lid+'"]').parent().find(".ui-icon-close").click(function () {
-      if (mylist.size == 0)
-        delete_list(mylist, function() {
-          $tabs.tabs("remove", mylist.order);
-        });
-    });
-    setdroppable();
-    $tabs.find('ul.ui-tabs-nav li').removeClass('ui-corner-top').addClass('ui-corner-all');
-    $tabs.find(".ui-tabs-nav").sortable("refresh");
-    //make_listbutt(); // leave the button at the top, lets see how that works
-  }
   
   /* init code */
   $("#mainprogress").hide().progressbar({value: 0});
