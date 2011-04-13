@@ -41,11 +41,12 @@ function Task(title, lid, order, description, due, tid, finished) {
   this.description = description;
   this._inner = null;
   this._item = null;
+  this._list = listman.get_list(lid); // fetch our list
 
   var _task = this; // since this changes too fucking often
   // TODO make this use external functions!
   var _make_task = function() {
-    items["todo_"+_task.tid]=_task;
+    items["todo_"+_task.tid]=_task; // TODO this should be removed!
     alive_todo++;
 
     // TODO most of these should be calling methods, haven't written them or cleaned it yet
@@ -104,7 +105,7 @@ function Task(title, lid, order, description, due, tid, finished) {
     var check=_task._inner.find(".ui-icon-circle-check");
     var finishme=function() {
       _task.finished=true;
-      finished_todo++;
+      _task._list.change_task(_task);
 
       /* send updates */
       _task.update(function() {
@@ -113,14 +114,14 @@ function Task(title, lid, order, description, due, tid, finished) {
         check.click(unfinishme);
       },
       function () {
-        finished_todo--;
         _task.finished=false;
+        _task._list.change_task(_task);
       });
     };
 
     var unfinishme=function() {
       _task.finished=false;
-      finished_todo--;
+      _task._list.change_task(_task);
 
       _task.update(function() {
         _task._inner.removeClass("ui-state-highlight").addClass("ui-state-default");
@@ -129,14 +130,14 @@ function Task(title, lid, order, description, due, tid, finished) {
       },
       function () {
         _task.finished=true;
-        finished_todo++;
+        _task._list.change_task(_task);
       });
     };
 
     if (_task.finished) {
       _task._inner.removeClass("ui-state-default").addClass("ui-state-highlight");
       check.click(unfinishme);
-      finished_todo++;
+      _task._list.change_task(_task);
     } else {
       check.click(finishme);
     }
@@ -144,6 +145,8 @@ function Task(title, lid, order, description, due, tid, finished) {
     _task._inner.find("span.ui-icon-close").click(function() {
       _task.delete(function () {
         listman.get_list(_task.lid).remove_task(_task);
+        _task._item.hide("slow");
+        _task._inner.hide("slow");
       });
     });
 
@@ -267,19 +270,12 @@ Task.prototype.edit_dialog = function() {
 Task.prototype.change_list = function(newlist) {
   if (newlist == null)
     return;
-    
-  /* send new order of lists */
-  /* listelem is the new list */
-  var lid = newlist.lid;
-  var oldlist = this.lid;
-    
-  this.lid = lid; /* set the new list */
-    
+
+  this._list.remove_task(this);
+  newlist.add_task(this);
+
   // send item update, with new list
   this.update(function() {}, function () {}); // TODO we don't need no confirmation
-  // send order of old list and new list
-  listman.get_list(oldlist).update();
-  newlist.update();
 }
 
 /***********************
@@ -292,6 +288,7 @@ function MainList(title, lid, order) {
   this.size=0;
   this.order=master_list_count++;
   this._items=new Array();
+  this._finished = 0;
 
   console.log("ListConstructor: title="+title+" lid="+lid+" order="+order);
   var _list=this; // does this suck horribly in javascript?
@@ -303,7 +300,7 @@ function MainList(title, lid, order) {
     newtab.attr("id","tab_"+_list.lid);
     newtab.find('.additem').button().click(function(){
       /* they asked to make a new item! */
-      _list.addtask(); // call the dialog method here
+      _list.addtaskdialog(); // call the dialog method here
       $(this).blur();
     });
 
@@ -345,7 +342,19 @@ MainList.prototype.toJSON = function() {
     return serial;
 }
 
-MainList.prototype.addtask = function() {
+MainList.prototype.change_task = function(task) {
+  console.log("FOUND THIS DAMN IT", $.toJSON(task), $.toJSON(this)); // TODO remove this
+  if (task.finished) {
+    this._finished++;
+    finished_todo++; // TODO this should be in ListManager
+  }
+  else {
+    this._finished--;
+    finished_todo--; // TODO this should be in ListManager
+  }
+}
+
+MainList.prototype.addtaskdialog = function() {
   var dialog = $_add_dialog.clone();
   var _list = this; // save an alias of the object
 
@@ -392,18 +401,19 @@ MainList.prototype.update = function() {
     console.log("WHO ARE YOU?"); // why do i need this? something down below triggers an update that causes this to shit itself. fun
     return;
   }
-
-  // TODO the object should be able to cache this later, making it faster
+  
   var arr = new Array();
 
-  var itemlength = this._items.length();
+  this._finished=0;
+  var itemlength = this._items.length;
   for (var i=0; i < itemlength; i++) {
     this._items[i].order=i;
-    arr.push(this._items[i].tid)
+    if (this._items[i].finished)
+      this._finished++;
+    
+    arr.push(this._items[i].tid); // TODO check into if i can drop this
   }
 
-  // TODO if i'm storing all of them inside here i don't need the size bit
-  this.size=itemlength;
   this.update_progress();
 
   /* TODO fuck i don't understand my own code... why doesn't this require a list?
@@ -422,7 +432,7 @@ MainList.prototype.update_progress = function () {
   if (this == null) // i've got a bug or two in here and i don't understand them
     return;
 
-  if (this.size == 0) { // don't try to divide by 0
+  if (this._items.length == 0) { // don't try to divide by 0
     // TODO needs to be a method rather than fucking with the stuff itself
     var $parent = listman.tabs.find('a[href="#tab_'+this.lid+'"]').parent();
     $parent.progressbar("value", 0);
@@ -430,16 +440,9 @@ MainList.prototype.update_progress = function () {
   } else {
     // TODO needs to be a method rather than fucking with the stuff itself
     var $parent = listman.tabs.find('a[href="#tab_'+this.lid+'"]').parent();
-    var what=$("#tab_"+this.lid+" li");
 
-    var n=0;
-    what.each(function() {
-      var id=$(this).attr("id");
-      if (items[id].finished)
-      n++;
-    });
-
-    var p=100 * n/this.size;
+    var p=100 * this._finished/this._items.length;
+    console.log(this._finished, this._items.length, p);
     $parent.progressbar("value", p);
     //$parent.find('.progress_text').text(""+Math.floor(p)+"%");
   }
@@ -449,29 +452,31 @@ MainList.prototype.update_progress = function () {
 
 MainList.prototype.add_task = function(task) {
   var $sortlist=$(".connectedSortable", "#tab_" + this.lid);
-  $sortlist.append(task._item);
+  console.log("ADD_TASK: ", $.toJSON(task));
+  task._item.appendTo($sortlist);
+  //$sortlist.append(task._item);
   $sortlist.sortable("refresh");
-  this.update_progress();
   task.lid = this.lid;
-  task.order = this.size++;
+  task._list = this; // so we can use it for moving tasks
+  task.order = this._items.length;
   task._setup_arrows();
+  this._items.push(task); // add it to the list of items
+  this.update();
 }
 
 MainList.prototype.remove_task = function (task) {
   var _list = this;
-  task._inner.hide("slow", function () {
-    task._item.remove();
-
-    if (task.finished)
-      finished_todo--;
-    alive_todo--;
-
-    // TODO this should be a method
-    _list.size--;
-    _list.update_progress();
-    task.lid=null; // set it null so i can filter later
-  })
+  console.log("REMOVE_TASK: ", $.toJSON(task));
   
+  if (task.finished) // TODO this should be moved to ListManager
+      finished_todo--;
+  alive_todo--;
+  
+  // TODO this should be a method
+  _list._items.splice(task.order,1); // remove it
+  _list.update(); // also calls update progress
+  task.lid=null; // set it null so i can filter later
+  task._list=null; // make sure it dies horribly
 }
 
 /***************
@@ -527,8 +532,8 @@ ListManager.prototype.setdroppable = function() {
       var newlist = listman.get_list($item.find( "a" ).attr( "href" ));
       // i don't know what i want here, i think $item and $list are what i want but we'll see
 
-      ui.draggable.hide( "slow", function() {
-        ui.draggable.appendTo( $list ).show();
+      ui.draggable.hide("slow", function() {
+        ui.draggable.appendTo($list).show();
         task.change_list(newlist);
       });
     }
