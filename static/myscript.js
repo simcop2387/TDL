@@ -214,6 +214,10 @@ Task.prototype._setup_arrows = function() {
 
 Task.prototype.delete = function(succeed) {
   /* delete a todo */
+  if (this.finished) // TODO this should be moved to ListManager
+      finished_todo--;
+  alive_todo--;
+  
   post_to('/ajaj/todo/delete', this, succeed); // TODO we don't need no stinking confirmation
 }
 
@@ -467,11 +471,7 @@ MainList.prototype.add_task = function(task) {
 MainList.prototype.remove_task = function (task) {
   var _list = this;
   console.log("REMOVE_TASK: ", $.toJSON(task));
-  
-  if (task.finished) // TODO this should be moved to ListManager
-      finished_todo--;
-  alive_todo--;
-  
+
   // TODO this should be a method
   _list._items.splice(task.order,1); // remove it
   _list.update(); // also calls update progress
@@ -489,7 +489,7 @@ MainList.prototype.remove_task = function (task) {
 function ListManager() {
   /*this should do something*/
   this.tabs = $_tabs.clone();
-  this.lists = new Array();
+  this.lists = {}; // Use an object/associative array, for memory
       
   this.tabs.tabs({tabTemplate: "<li><a href='#{href}'>#{label}<div class='progress_text'></div></a><span class='ui-icon ui-icon-close' title='Remove list'>Remove List</span></li>"})
       .addClass('ui-tabs-vertical ui-helper-clearfix')
@@ -622,6 +622,14 @@ ListManager.prototype.add_list = function(list) {
   console.log("ADD_LIST: "+list.lid);
 
   return this.lists[list.lid] = list; // return our list also
+}
+
+ListManager.prototype.get_item = function(tid) {
+  for (var l in this.lists) {
+    var item;
+    if (item = this.lists[l].get_item(tid))
+      return item;
+  }
 }
 
   /**********************************************
