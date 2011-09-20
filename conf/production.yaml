@@ -1,0 +1,9 @@
+database:
+    hostname: "localhost"
+    database: "thingsdonelater"
+    username: "ryan"
+    password: "CeShmibTitbobEvpicdecFet8ockunLivAdhukubdafciem6"
+paths:
+    static_files: /home/ryan/TDL/static/
+server:
+    x_send_file: 1
